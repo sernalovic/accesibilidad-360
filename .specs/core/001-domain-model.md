@@ -15,7 +15,7 @@
 **Bloquea:**
 
 - 002-infrastructure.md
-- 010-user-authentication.md
+- 010-authentication-and-authorization.md
 - 020-user-management.md
 - 030-establishment-management.md
 
