@@ -9,7 +9,7 @@
 
 ## Funcionalidades
 
-- [ ] 010-user-authentication
+- [ ] 010-authentication-and-authorization.md
 - [ ] 020-user-management
 - [ ] 030-establishment-management
 - [ ] 040-accessibility-reviews
