@@ -3,14 +3,14 @@
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { loginSchema, type LoginInput } from "../schemas/login.schema";
 import { loginUserAction } from "../actions/login.action";
 
-const inputClassName = "w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900";
-
-// Formulario de inicio de sesión (SPEC-010 fase 010.4).
-// El éxito redirige en servidor a /dashboard, por lo que aquí
-// solo se gestiona el error con un único mensaje genérico.
+// Formulario de inicio de sesión (Sprint UI-001: shadcn/ui).
+// Misma lógica y accesibilidad; solo cambia la presentación.
 export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -33,52 +33,55 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-label="Formulario de inicio de sesión">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      aria-label="Formulario de inicio de sesión"
+      className="space-y-4"
+    >
       {formError && (
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-red-800">
+        <p role="alert" className="rounded-md border px-3 py-2 text-sm">
           {formError}
         </p>
       )}
 
-      <div>
-        <label htmlFor="login-email">Correo electrónico</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="login-email">Correo electrónico</Label>
+        <Input
           id="login-email"
           type="email"
           autoComplete="email"
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "login-email-error" : undefined}
-          className={inputClassName}
           {...register("email")}
         />
         {errors.email && (
-          <p id="login-email-error" role="alert" className="text-red-800">
+          <p id="login-email-error" role="alert" className="text-sm text-destructive">
             {errors.email.message}
           </p>
         )}
       </div>
 
-      <div>
-        <label htmlFor="login-password">Contraseña</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="login-password">Contraseña</Label>
+        <Input
           id="login-password"
           type="password"
           autoComplete="current-password"
           aria-invalid={errors.password ? true : undefined}
           aria-describedby={errors.password ? "login-password-error" : undefined}
-          className={inputClassName}
           {...register("password")}
         />
         {errors.password && (
-          <p id="login-password-error" role="alert" className="text-red-800">
+          <p id="login-password-error" role="alert" className="text-sm text-destructive">
             {errors.password.message}
           </p>
         )}
       </div>
 
-      <button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Iniciando sesión…" : "Iniciar sesión"}
-      </button>
+      </Button>
     </form>
   );
 }

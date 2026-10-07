@@ -4,22 +4,22 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { reviewSchema, type ReviewInput } from "../schemas/review.schema";
 import { createReviewAction } from "../actions/create-review.action";
 import type { CriterionOption } from "../services/criterion.service";
 import { SCORE_VALUES, scoreLabel } from "../utils/score-labels";
-
-const inputClassName = "w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900";
 
 interface ReviewFormProps {
   establishmentId: string;
   criteria: CriterionOption[];
 }
 
-// Formulario de valoración (SPEC-040).
-// Radios accesibles por criterio (fieldset + legend) con el significado
-// de cada valor en etiqueta visible de escala y aria-label por opción.
-// Sin sliders. El comentario es opcional.
+// Formulario de valoración (Sprint UI-001: shadcn/ui en comentario;
+// los radios siguen siendo radios nativos, sin sliders).
+// Misma lógica y accesibilidad; solo cambia la presentación.
 export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -56,21 +56,25 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-label="Formulario de valoración">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      aria-label="Formulario de valoración"
+      className="space-y-4"
+    >
       {formError && (
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-red-800">
+        <p role="alert" className="rounded-md border px-3 py-2 text-sm">
           {formError}
         </p>
       )}
 
       <fieldset>
         <legend>Tu valoración</legend>
-        <div>
-          <label htmlFor="review-comment">Comentario (opcional)</label>
-          <textarea
+        <div className="space-y-2">
+          <Label htmlFor="review-comment">Comentario (opcional)</Label>
+          <Textarea
             id="review-comment"
             aria-invalid={errors.comment ? true : undefined}
-            className={inputClassName}
             {...register("comment")}
           />
         </div>
@@ -104,15 +108,15 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
           </fieldset>
         ))}
         {errors.scores && (
-          <p role="alert" className="text-red-800">
+          <p role="alert" className="text-sm text-destructive">
             Debes puntuar todos los criterios.
           </p>
         )}
       </fieldset>
 
-      <button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Guardando…" : "Enviar valoración"}
-      </button>
+      </Button>
     </form>
   );
 }

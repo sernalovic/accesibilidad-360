@@ -1,6 +1,7 @@
 import { requireSession } from "@/lib/auth/require-session";
 import { Topbar } from "@/components/layout/Topbar";
 import { MainNav } from "@/components/layout/MainNav";
+import { Container } from "@/components/layout/Container";
 
 // Layout del grupo protegido (SPEC-010).
 // Punto único de protección: sin sesión redirige a /login.
@@ -13,8 +14,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
       <Topbar
         user={{ name: session.user.name, email: session.user.email, role: session.user.role }}
       />
-      <MainNav />
-      {children}
+      <Container>
+        <MainNav />
+        {children}
+      </Container>
     </>
   );
 }

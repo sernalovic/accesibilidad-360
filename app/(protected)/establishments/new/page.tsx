@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { EstablishmentForm } from "@/features/establishments/components/EstablishmentForm";
 import { listCategories } from "@/features/establishments/services/category.service";
+import { Container } from "@/components/layout/Container";
 
 export const metadata: Metadata = {
   title: "Nuevo establecimiento | Accesibilidad 360",
@@ -14,8 +15,10 @@ export default async function NewEstablishmentPage() {
 
   return (
     <main>
-      <h1>Nuevo establecimiento</h1>
-      <EstablishmentForm categories={categories} />
+      <Container>
+        <h1>Nuevo establecimiento</h1>
+        <EstablishmentForm categories={categories} />
+      </Container>
     </main>
   );
 }

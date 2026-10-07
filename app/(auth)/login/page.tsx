@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { SuccessNotice } from "@/features/auth/components/SuccessNotice";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
@@ -11,7 +12,7 @@ interface LoginPageProps {
   searchParams: Promise<{ registered?: string }>;
 }
 
-// Inicio de sesión (SPEC-010 fase 010.4).
+// Inicio de sesión (Sprint UI-001: Card centrada).
 // Solo compone: el aviso de registro, el formulario y la lógica
 // viven en el módulo features/auth.
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -19,12 +20,18 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const justRegistered = registered === "true";
 
   return (
-    <main>
-      <h1>Iniciar sesión</h1>
-      {justRegistered && (
-        <SuccessNotice message="Tu cuenta se ha creado correctamente. Ya puedes iniciar sesión." />
-      )}
-      <LoginForm />
+    <main className="mx-auto w-full max-w-md px-4 py-12">
+      <Card>
+        <CardHeader>
+          <h1 className="text-2xl font-semibold">Iniciar sesión</h1>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {justRegistered && (
+            <SuccessNotice message="Tu cuenta se ha creado correctamente. Ya puedes iniciar sesión." />
+          )}
+          <LoginForm />
+        </CardContent>
+      </Card>
     </main>
   );
 }

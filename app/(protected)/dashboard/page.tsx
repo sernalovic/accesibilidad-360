@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { auth } from "@/lib/auth/auth";
+import { Container } from "@/components/layout/Container";
 
 export const metadata: Metadata = {
   title: "Panel principal | Accesibilidad 360",
@@ -14,22 +15,24 @@ export default async function DashboardPage() {
 
   return (
     <main>
-      <h1>Panel principal</h1>
-      <p>Bienvenido, {name}.</p>
-      <dl>
-        <div>
-          <dt>Nombre</dt>
-          <dd>{session?.user?.name ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>Correo electrónico</dt>
-          <dd>{session?.user?.email ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>Rol</dt>
-          <dd>{session?.user?.role ?? "—"}</dd>
-        </div>
-      </dl>
+      <Container>
+        <h1>Panel principal</h1>
+        <p>Bienvenido, {name}.</p>
+        <dl>
+          <div>
+            <dt>Nombre</dt>
+            <dd>{session?.user?.name ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Correo electrónico</dt>
+            <dd>{session?.user?.email ?? "—"}</dd>
+          </div>
+          <div>
+            <dt>Rol</dt>
+            <dd>{session?.user?.role ?? "—"}</dd>
+          </div>
+        </dl>
+      </Container>
     </main>
   );
 }

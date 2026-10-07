@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { EstablishmentListItem } from "../services/establishment.service";
 
 const dateFormatter = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" });
@@ -30,7 +31,9 @@ export function EstablishmentCard({ establishment }: { establishment: Establishm
       </Link>
       <CardHeader>
         <CardTitle>{establishment.name}</CardTitle>
-        <CardDescription>{establishment.category.name}</CardDescription>
+        <CardDescription>
+          <Badge variant="secondary">{establishment.category.name}</Badge>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <p>

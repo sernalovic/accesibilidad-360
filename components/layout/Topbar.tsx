@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/features/auth/actions/logout.action";
 
 interface TopbarProps {
@@ -13,20 +15,24 @@ interface TopbarProps {
 // de sesión un <form> con Server Action.
 export function Topbar({ user }: TopbarProps) {
   return (
-    <header>
-      <p>Accesibilidad 360</p>
-      <details>
-        <summary aria-label="Menú de usuario">
-          {user.name ?? user.email} — {user.role}
-        </summary>
-        <div>
-          <p>{user.name}</p>
-          <p>{user.role}</p>
-          <form action={logoutAction}>
-            <button type="submit">Cerrar sesión</button>
-          </form>
-        </div>
-      </details>
+    <header className="border-b">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
+        <p className="font-semibold">Accesibilidad 360</p>
+        <details>
+          <summary aria-label="Menú de usuario">
+            {user.name ?? user.email} <Badge variant="secondary">{user.role}</Badge>
+          </summary>
+          <div>
+            <p>{user.name}</p>
+            <p>{user.role}</p>
+            <form action={logoutAction}>
+              <Button type="submit" size="sm">
+                Cerrar sesión
+              </Button>
+            </form>
+          </div>
+        </details>
+      </div>
     </header>
   );
 }

@@ -4,13 +4,14 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { registerSchema, type RegisterInput } from "../schemas/register.schema";
 import { registerUserAction } from "../actions/register.action";
 
-const inputClassName = "w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900";
-
-// Formulario de registro (SPEC-010 fase 010.3).
-// Valida en cliente para la UX; el servidor revalida siempre.
+// Formulario de registro (Sprint UI-001: shadcn/ui).
+// Misma lógica y accesibilidad; solo cambia la presentación.
 export function RegisterForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -46,88 +47,89 @@ export function RegisterForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate aria-label="Formulario de registro">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      aria-label="Formulario de registro"
+      className="space-y-4"
+    >
       {formError && (
-        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-red-800">
+        <p role="alert" className="rounded-md border px-3 py-2 text-sm">
           {formError}
         </p>
       )}
 
-      <div>
-        <label htmlFor="register-name">Nombre</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="register-name">Nombre</Label>
+        <Input
           id="register-name"
           type="text"
           autoComplete="name"
           aria-invalid={errors.name ? true : undefined}
           aria-describedby={errors.name ? "register-name-error" : undefined}
-          className={inputClassName}
           {...register("name")}
         />
         {errors.name && (
-          <p id="register-name-error" role="alert" className="text-red-800">
+          <p id="register-name-error" role="alert" className="text-sm text-destructive">
             {errors.name.message}
           </p>
         )}
       </div>
 
-      <div>
-        <label htmlFor="register-email">Correo electrónico</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="register-email">Correo electrónico</Label>
+        <Input
           id="register-email"
           type="email"
           autoComplete="email"
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "register-email-error" : undefined}
-          className={inputClassName}
           {...register("email")}
         />
         {errors.email && (
-          <p id="register-email-error" role="alert" className="text-red-800">
+          <p id="register-email-error" role="alert" className="text-sm text-destructive">
             {errors.email.message}
           </p>
         )}
       </div>
 
-      <div>
-        <label htmlFor="register-password">Contraseña</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="register-password">Contraseña</Label>
+        <Input
           id="register-password"
           type="password"
           autoComplete="new-password"
           aria-invalid={errors.password ? true : undefined}
           aria-describedby={errors.password ? "register-password-error" : undefined}
-          className={inputClassName}
           {...register("password")}
         />
         {errors.password && (
-          <p id="register-password-error" role="alert" className="text-red-800">
+          <p id="register-password-error" role="alert" className="text-sm text-destructive">
             {errors.password.message}
           </p>
         )}
       </div>
 
-      <div>
-        <label htmlFor="register-confirm">Confirmar contraseña</label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="register-confirm">Confirmar contraseña</Label>
+        <Input
           id="register-confirm"
           type="password"
           autoComplete="new-password"
           aria-invalid={errors.confirmPassword ? true : undefined}
           aria-describedby={errors.confirmPassword ? "register-confirm-error" : undefined}
-          className={inputClassName}
           {...register("confirmPassword")}
         />
         {errors.confirmPassword && (
-          <p id="register-confirm-error" role="alert" className="text-red-800">
+          <p id="register-confirm-error" role="alert" className="text-sm text-destructive">
             {errors.confirmPassword.message}
           </p>
         )}
       </div>
 
-      <button type="submit" disabled={isPending}>
+      <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Creando cuenta…" : "Crear cuenta"}
-      </button>
+      </Button>
     </form>
   );
 }
