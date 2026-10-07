@@ -1,0 +1,22 @@
+import { z } from "zod";
+
+// Validación de la valoración (SPEC-040).
+// Comentario opcional; puntuaciones de todos los criterios obligatorias
+// (la cobertura total la garantiza el servicio contra la base de datos).
+// `userId` nunca forma parte del formulario: lo aporta la sesión.
+const criterionScoreSchema = z.object({
+  criterionId: z.string().trim().min(1),
+  score: z
+    .number({ invalid_type_error: "Debes puntuar este criterio." })
+    .int("La puntuación debe ser un número entero.")
+    .min(0, "La puntuación mínima es 0.")
+    .max(5, "La puntuación máxima es 5."),
+});
+
+export const reviewSchema = z.object({
+  establishmentId: z.string().trim().min(1),
+  comment: z.string().trim().optional(),
+  scores: z.array(criterionScoreSchema).min(1, "Debes puntuar al menos un criterio."),
+});
+
+export type ReviewInput = z.infer<typeof reviewSchema>;

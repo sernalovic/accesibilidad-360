@@ -248,3 +248,33 @@ En esta fase del proyecto no se define el comportamiento sobre entidades relacio
 La política definitiva de eliminación (cascada, restricción, borrado lógico o cualquier otra estrategia) se decidirá cuando dichos módulos formen parte del dominio.
 
 Mientras tanto, la implementación no deberá asumir ningún comportamiento de eliminación en cascada.
+
+## Entrega 2 — Listado y detalle de establecimientos
+
+### Objetivo
+
+Sustituir el placeholder inicial por un listado funcional y una página de detalle.
+
+### Alcance
+
+Implementado:
+
+- Listado de establecimientos.
+- Ordenación por fecha de creación descendente.
+- Tarjetas reutilizables (`EstablishmentCard`).
+- Estado vacío.
+- Enlace a creación.
+- Página de detalle.
+- `notFound()` cuando el establecimiento no existe.
+
+No implementado todavía:
+
+- Edición.
+- Eliminación.
+- Búsqueda.
+- Filtros.
+- Paginación.
+- Valoraciones.
+- Fotografías.
+- Mapa.
+

@@ -39,6 +39,9 @@ model User {
 
   accounts Account[]
   sessions Session[]
+
+  establishments Establishment[]
+  reviews        AccessibilityReview[]
 }
 
 // Requerido por Auth.js v5. Sin campos adicionales.
@@ -71,6 +74,89 @@ model Session {
   expires      DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Categoría de establecimiento (SPEC-030).
+// `name` es único para permitir un seed idempotente por nombre.
+// `icon` es opcional (nombre del icono Lucide, sin administrar todavía).
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+
+  establishments Establishment[]
+}
+
+// Establecimiento físico, primera entrega (SPEC-030).
+// Solo datos básicos de ficha: sin fotografías, valoraciones,
+// puntuación, coordenadas ni accesibilidad (fases posteriores).
+// `postalCode` existe como opcional pero no se solicita en el formulario.
+model Establishment {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  address      String
+  municipality String
+  province     String
+  postalCode   String?
+  categoryId   String
+  createdById  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category  Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdBy User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  reviews AccessibilityReview[]
+}
+
+// Criterio de accesibilidad (SPEC-040, 1.ª entrega).
+// Versión simplificada del dominio: sin code, weight, active ni icon.
+// `name` es único para permitir un seed idempotente.
+// `order` define el orden de presentación en el formulario.
+model Criterion {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  order       Int
+  createdAt   DateTime @default(now())
+
+  scores CriterionScore[]
+}
+
+// Valoración de un establecimiento por un usuario (SPEC-040).
+// Un usuario solo puede tener una valoración por establecimiento
+// (@@unique). El comentario es opcional; las puntuaciones por
+// criterio viven en CriterionScore.
+model AccessibilityReview {
+  id              String   @id @default(cuid())
+  establishmentId String
+  userId          String
+  comment         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  establishment Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  scores CriterionScore[]
+
+  @@unique([establishmentId, userId])
+}
+
+// Puntuación de un criterio dentro de una valoración (SPEC-040).
+// Entero de 0 a 5 (rango validado en Zod y servicio).
+model CriterionScore {
+  id          String @id @default(cuid())
+  reviewId    String
+  criterionId String
+  score       Int
+
+  review    AccessibilityReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  criterion Criterion           @relation(fields: [criterionId], references: [id], onDelete: Restrict)
+
+  @@unique([reviewId, criterionId])
 }
 
 // Requerido por Auth.js v5. Sin campos adicionales.
