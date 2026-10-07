@@ -233,6 +233,6 @@ Existen:
 
 El proyecto queda preparado para comenzar el desarrollo de la especificación:
 
-010-user-authentication.md
+010-authentication-and-authorization.md
 
 No deberá existir ninguna funcionalidad del negocio implementada.
