@@ -1,38 +1,20 @@
 import type { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 
-// Fase 010.1 (SPEC-010): andamiaje de autenticación.
-// Este archivo debe seguir siendo compatible con el Edge Runtime
-// porque también lo utiliza `middleware.ts`. No importar aquí
-// adaptadores de base de datos ni utilidades específicas de Node.
-//
-// Decisiones temporales documentadas:
-// - Único provider: Credentials (sin OAuth, según restricciones de SPEC-010).
-// - Sesiones JWT: no existe todavía el modelo User, por lo que no puede
-//   utilizarse PrismaAdapter. Las sesiones de base de datos llegarán
-//   con los modelos, sin cambiar esta arquitectura.
-
-/**
- * Temporalmente se utiliza estrategia JWT.
- *
- * En la fase 010.2 se migrará a Prisma Adapter y sesiones persistentes.
- */
-
+// Fase 010.4 (SPEC-010): configuración compatible con el Edge Runtime.
+// La utiliza `middleware.ts` y se extiende en `lib/auth/auth.ts` con el
+// provider Credentials (Node). No importar aquí Prisma, bcrypt ni
+// adaptadores: romperían el bundle Edge.
 export const authConfig: NextAuthConfig = {
-  providers: [
-    Credentials({
-      credentials: {
-        email: { label: "Correo electrónico", type: "email" },
-        password: { label: "Contraseña", type: "password" },
-      },
-      authorize() {
-        // TODO(SPEC-010, fase login): verificar las credenciales contra
-        // Prisma cuando exista el modelo User. Hasta entonces deniega.
-        return null;
-      },
-    }),
-  ],
+  // Sin providers aquí: el provider Credentials (Node) se añade en
+  // `lib/auth/auth.ts`. El middleware solo necesita la sesión.
+  providers: [],
   session: { strategy: "jwt" },
-  // TODO(SPEC-010, fase páginas): configurar `pages` (signIn, error, ...)
-  // cuando existan las rutas de autenticación.
+  pages: { signIn: "/login" },
+  callbacks: {
+    authorized() {
+      // TODO(SPEC-010, fase autorización): proteger rutas por
+      // autenticación y rol. De momento solo refresca la sesión.
+      return true;
+    },
+  },
 };
