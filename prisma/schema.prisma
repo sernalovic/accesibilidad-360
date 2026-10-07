@@ -1,0 +1,12 @@
+// Esquema Prisma inicial (SPEC-003).
+// No se define todavía ninguna entidad del dominio.
+// Las entidades se añadirán con sus especificaciones correspondientes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

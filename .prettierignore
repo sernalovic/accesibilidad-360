@@ -1,0 +1,12 @@
+# Documentación de gobierno (formato propiedad del equipo, no del formateador)
+.ai/
+.specs/
+AGENTS.md
+CLAUDE.md
+
+# Generados
+.next/
+coverage/
+next-env.d.ts
+playwright-report/
+test-results/
