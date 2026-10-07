@@ -25,6 +25,7 @@ Proyecto desarrollado como Trabajo Fin de Máster en Programación con Inteligen
 ```bash
 npm install
 cp .env.example .env
+npx auth secret   # genera AUTH_SECRET en .env
 ```
 
 ## Despliegue
