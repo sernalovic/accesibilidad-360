@@ -8,6 +8,9 @@ import { listCriteria } from "@/features/reviews/services/criterion.service";
 import { listReviewsByEstablishment } from "@/features/reviews/services/review.service";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewList } from "@/features/reviews/components/ReviewList";
+import { EstablishmentPhoto } from "@/features/photos/components/EstablishmentPhoto";
+import { PhotoUploadForm } from "@/features/photos/components/PhotoUploadForm";
+import { listPhotosByEstablishment } from "@/features/photos/services/photo.service";
 
 export const metadata: Metadata = {
   title: "Ficha de establecimiento | Accesibilidad 360",
@@ -23,15 +26,17 @@ interface EstablishmentDetailPageProps {
 // Sin medias, edición ni eliminación. Inexistente → notFound().
 export default async function EstablishmentDetailPage({ params }: EstablishmentDetailPageProps) {
   const { id } = await params;
-  const [establishment, criteria, reviews] = await Promise.all([
+  const [establishment, criteria, reviews, photos] = await Promise.all([
     getEstablishmentById(id),
     listCriteria(),
     listReviewsByEstablishment(id),
+    listPhotosByEstablishment(id),
   ]);
   if (!establishment) {
     notFound();
   }
   const summary = formatScoreSummary(establishment);
+  const [primaryPhoto] = photos;
 
   return (
     <main>
@@ -71,6 +76,16 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
             </dd>
           </div>
         </dl>
+
+        <Separator />
+
+        <section aria-labelledby="photo-heading">
+          <h2 id="photo-heading">Fotografía</h2>
+          {primaryPhoto && (
+            <EstablishmentPhoto url={primaryPhoto.url} establishmentName={establishment.name} />
+          )}
+          <PhotoUploadForm establishmentId={establishment.id} disabled={photos.length > 0} />
+        </section>
 
         <Separator />
 

@@ -446,7 +446,8 @@ Utilizar fetch únicamente cuando sea necesario.
 
 Server Actions
 
-Almacenamiento local durante el desarrollo.
+Cloudinary (ver ADR-004). En base de datos solo se persiste la URL
+(`secure_url`) y el `publicId`; el secreto nunca sale del servidor.
 
 ---
 

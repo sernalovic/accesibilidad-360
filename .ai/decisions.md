@@ -77,3 +77,25 @@ Se mantienen temporalmente estas políticas en cascada para simplificar la prime
 ## Revisión prevista
 
 Deberá revisarse antes de la versión 1.0 o cuando se implementen edición, eliminación, moderación o medias/estadísticas. Se evaluará sustituir `CASCADE` por `RESTRICT` o `SET NULL` según el dominio.
+
+# ADR-004 — Almacenamiento de fotografías en Cloudinary
+
+**Fecha:** 2026-10-08
+
+## Contexto
+
+La arquitectura inicial preveía almacenamiento local durante el desarrollo. Vercel (hosting del proyecto) tiene un sistema de archivos efímero: los ficheros subidos en local no persistirían en producción.
+
+## Decisión
+
+Almacenar las fotografías en Cloudinary (plan gratuito):
+
+- Subida siempre desde el servidor mediante Server Actions (`upload_stream`); el API secret nunca sale del servidor.
+- En PostgreSQL solo se persisten `url` (`secure_url`) y `publicId` (imprescindible para futuras eliminaciones/transformaciones).
+- SDK oficial `cloudinary` (v2); sin librerías intermedias.
+
+## Consecuencias
+
+- Requiere `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET` en el entorno (placeholders en `.env.example`).
+- `next/image` exige `images.remotePatterns` para `res.cloudinary.com`.
+- Límite técnico documentado en SPEC-050 (5 MB, JPG/PNG/WebP, dimensiones mínimas).

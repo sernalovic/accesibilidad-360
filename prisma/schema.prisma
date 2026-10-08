@@ -42,6 +42,7 @@ model User {
 
   establishments Establishment[]
   reviews        AccessibilityReview[]
+  photos         Photo[]
 }
 
 // Requerido por Auth.js v5. Sin campos adicionales.
@@ -109,6 +110,7 @@ model Establishment {
   createdBy User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
   reviews AccessibilityReview[]
+  photos  Photo[]
 }
 
 // Criterio de accesibilidad (SPEC-040, 1.ª entrega).
@@ -157,6 +159,27 @@ model CriterionScore {
   criterion Criterion           @relation(fields: [criterionId], references: [id], onDelete: Restrict)
 
   @@unique([reviewId, criterionId])
+}
+
+// Fotografía de un establecimiento (SPEC-050, 1.ª entrega).
+// Solo se persisten `url` (secure_url) y `publicId`; el archivo vive
+// en Cloudinary (ADR-004). `isPrimary` prepara el soporte futuro de
+// múltiples fotografías. La regla "una por establecimiento" vive en
+// el servicio, no en base de datos.
+model Photo {
+  id              String   @id @default(cuid())
+  establishmentId String
+  userId          String
+  url             String
+  publicId        String
+  caption         String?
+  isPrimary       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  establishment Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([establishmentId])
 }
 
 // Requerido por Auth.js v5. Sin campos adicionales.
