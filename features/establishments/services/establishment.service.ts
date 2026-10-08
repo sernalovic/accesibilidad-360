@@ -406,6 +406,17 @@ interface ReviewScores {
   scores: { score: number }[];
 }
 
+// Media redondeada a un decimal sobre una lista de puntuaciones.
+// Exportada para reutilizar el mismo cálculo fuera del módulo
+// (p. ej. dashboard) sin duplicar la fórmula.
+export function averageScoreOf(scores: number[]): number {
+  if (scores.length === 0) {
+    return 0;
+  }
+  const total = scores.reduce((sum, score) => sum + score, 0);
+  return Math.round((total / scores.length) * 10) / 10;
+}
+
 // Media redondeada a un decimal sobre todas las puntuaciones.
 // Sin valoraciones: averageScore 0 y hasReviews false (nunca null).
 function summarizeScores(reviews: ReviewScores[]): {
@@ -414,11 +425,9 @@ function summarizeScores(reviews: ReviewScores[]): {
   hasReviews: boolean;
 } {
   const allScores = reviews.flatMap((review) => review.scores.map((entry) => entry.score));
-  const hasReviews = allScores.length > 0;
-  const total = allScores.reduce((sum, score) => sum + score, 0);
   return {
-    averageScore: hasReviews ? Math.round((total / allScores.length) * 10) / 10 : 0,
+    averageScore: averageScoreOf(allScores),
     reviewCount: reviews.length,
-    hasReviews,
+    hasReviews: allScores.length > 0,
   };
 }

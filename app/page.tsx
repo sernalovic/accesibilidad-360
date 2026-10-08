@@ -76,7 +76,7 @@ export default function HomePage() {
 
       <footer className="border-t">
         <Container>
-          <p>Proyecto TFM · Next.js · Prisma · PostgreSQL</p>
+          <p>TFM Desarrollo con IA · Big School· Next.js · Prisma · PostgreSQL</p>
         </Container>
       </footer>
     </div>
