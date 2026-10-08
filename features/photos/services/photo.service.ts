@@ -50,10 +50,20 @@ export async function uploadEstablishmentPhoto(
   userId: string,
   file: File,
 ): Promise<StoredPhoto> {
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.1. inicio del servicio", {
+    establishmentId,
+    userId,
+    fileName: file.name,
+    fileType: file.type,
+    fileSize: file.size,
+  });
   const establishment = await prisma.establishment.findUnique({
     where: { id: establishmentId },
     select: { id: true },
   });
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.2. establecimiento", establishment ? "encontrado" : "NO_EXISTE");
   if (!establishment) {
     throw new EstablishmentNotFoundError();
   }
@@ -62,17 +72,31 @@ export async function uploadEstablishmentPhoto(
     where: { establishmentId },
     select: { id: true },
   });
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.3. duplicado", existing ? "EXISTE" : "no");
   if (existing) {
     throw new PhotoAlreadyExistsError();
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.4. buffer creado", { bytes: buffer.length });
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.5. invocando subida a Cloudinary");
   const uploaded = await uploadPhotoBuffer(buffer);
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 5.6. dimensiones", {
+    width: uploaded.width,
+    height: uploaded.height,
+    publicId: uploaded.publicId,
+  });
   if (uploaded.width < MIN_PHOTO_WIDTH || uploaded.height < MIN_PHOTO_HEIGHT) {
     await deleteUploadedPhoto(uploaded.publicId);
     throw new PhotoTooSmallError();
   }
 
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 8. escritura en Prisma");
   const photo = await prisma.photo.create({
     data: {
       establishmentId,
@@ -83,6 +107,8 @@ export async function uploadEstablishmentPhoto(
     },
     select: { id: true, url: true },
   });
+  // TEMP-DEBUG (retirar tras verificar en Vercel).
+  console.log("[debug-upload] 8. foto persistida", { id: photo.id });
   return photo;
 }
 
