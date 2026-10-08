@@ -312,6 +312,60 @@ export async function searchEstablishments(
   );
 }
 
+export interface MappedEstablishment {
+  id: string;
+  name: string;
+  category: string;
+  municipality: string;
+  province: string;
+  latitude: number;
+  longitude: number;
+  averageScore: number;
+  reviewCount: number;
+  hasReviews: boolean;
+  photoUrl: string | null;
+}
+
+// Establecimientos geolocalizados para el mapa global (SPEC-090).
+// Una única consulta: solo con coordenadas, con la primera fotografía
+// y las puntuaciones para la media (reutiliza summarizeScores).
+// `select` explícito en todo, sin `include`.
+export async function listMappedEstablishments(): Promise<MappedEstablishment[]> {
+  const rows = await prisma.establishment.findMany({
+    where: { latitude: { not: null }, longitude: { not: null } },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      name: true,
+      latitude: true,
+      longitude: true,
+      createdAt: true,
+      category: { select: { name: true } },
+      municipality: { select: { name: true } },
+      province: { select: { name: true } },
+      photos: {
+        select: { url: true },
+        orderBy: { createdAt: "asc" },
+        take: 1,
+      },
+      createdBy: { select: { name: true } },
+      reviews: { select: { scores: { select: { score: true } } } },
+    },
+  });
+  return rows.map(({ reviews, municipality, province, category, photos, ...rest }) => ({
+    id: rest.id,
+    name: rest.name,
+    category: category.name,
+    municipality: municipality.name,
+    province: province.name,
+    // Garantizados por el `where`, pero tipados como anulables.
+    latitude: rest.latitude ?? 0,
+    longitude: rest.longitude ?? 0,
+    photoUrl: photos[0]?.url ?? null,
+    ...summarizeScores(reviews),
+  }));
+}
+
 // Detalle para /establishments/[id] (SPEC-030, 2.ª entrega).
 // Retorna null si no existe; la página responde con notFound().
 export async function getEstablishmentById(id: string): Promise<EstablishmentDetail | null> {
