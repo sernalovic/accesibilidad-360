@@ -23,6 +23,10 @@ export interface EstablishmentListItem {
   createdAt: Date;
   category: { name: string };
   createdBy: { name: string | null };
+  // Media dinámica (SPEC-040): siempre number (0 sin valoraciones).
+  averageScore: number;
+  reviewCount: number;
+  hasReviews: boolean;
 }
 
 export interface EstablishmentDetail extends EstablishmentListItem {
@@ -59,8 +63,10 @@ export async function createEstablishment(
 
 // Lista los establecimientos para /establishments (SPEC-030, 2.ª entrega).
 // Orden fijo createdAt DESC. `select` explícito: nunca el User completo.
+// Incluye la media dinámica y el conteo (SPEC-040): una sola consulta
+// con `select` anidado, cálculo en JS, sin N+1 y sin nada persistido.
 export async function listEstablishments(): Promise<EstablishmentListItem[]> {
-  return prisma.establishment.findMany({
+  const rows = await prisma.establishment.findMany({
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -70,14 +76,16 @@ export async function listEstablishments(): Promise<EstablishmentListItem[]> {
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
+      reviews: { select: { scores: { select: { score: true } } } },
     },
   });
+  return rows.map(({ reviews, ...rest }) => ({ ...rest, ...summarizeScores(reviews) }));
 }
 
 // Detalle para /establishments/[id] (SPEC-030, 2.ª entrega).
 // Retorna null si no existe; la página responde con notFound().
 export async function getEstablishmentById(id: string): Promise<EstablishmentDetail | null> {
-  return prisma.establishment.findUnique({
+  const row = await prisma.establishment.findUnique({
     where: { id },
     select: {
       id: true,
@@ -89,6 +97,33 @@ export async function getEstablishmentById(id: string): Promise<EstablishmentDet
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
+      reviews: { select: { scores: { select: { score: true } } } },
     },
   });
+  if (!row) {
+    return null;
+  }
+  const { reviews, ...rest } = row;
+  return { ...rest, ...summarizeScores(reviews) };
+}
+
+interface ReviewScores {
+  scores: { score: number }[];
+}
+
+// Media redondeada a un decimal sobre todas las puntuaciones.
+// Sin valoraciones: averageScore 0 y hasReviews false (nunca null).
+function summarizeScores(reviews: ReviewScores[]): {
+  averageScore: number;
+  reviewCount: number;
+  hasReviews: boolean;
+} {
+  const allScores = reviews.flatMap((review) => review.scores.map((entry) => entry.score));
+  const hasReviews = allScores.length > 0;
+  const total = allScores.reduce((sum, score) => sum + score, 0);
+  return {
+    averageScore: hasReviews ? Math.round((total / allScores.length) * 10) / 10 : 0,
+    reviewCount: reviews.length,
+    hasReviews,
+  };
 }

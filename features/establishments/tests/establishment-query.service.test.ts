@@ -27,7 +27,10 @@ const sampleItem = {
   createdAt: new Date("2026-01-01"),
   category: { name: "Restaurante" },
   createdBy: { name: "María" },
+  reviews: [],
 };
+
+const sampleSummary = { averageScore: 0, reviewCount: 0, hasReviews: false };
 
 describe("listEstablishments (SPEC-030)", () => {
   it("ordena por creación descendente con select explícito", async () => {
@@ -35,7 +38,7 @@ describe("listEstablishments (SPEC-030)", () => {
 
     const result = await listEstablishments();
 
-    expect(result).toEqual([sampleItem]);
+    expect(result).toEqual([{ ...sampleItem, reviews: undefined, ...sampleSummary }]);
     expect(findMany).toHaveBeenCalledOnce();
     expect(findMany.mock.calls[0]?.[0]?.orderBy).toEqual({ createdAt: "desc" });
     const select = findMany.mock.calls[0]?.[0]?.select;
@@ -48,15 +51,47 @@ describe("listEstablishments (SPEC-030)", () => {
 
     await expect(listEstablishments()).resolves.toEqual([]);
   });
+
+  it("calcula la media redondeada a un decimal y el conteo", async () => {
+    findMany.mockResolvedValue([
+      {
+        ...sampleItem,
+        reviews: [{ scores: [{ score: 5 }, { score: 4 }] }, { scores: [{ score: 4 }] }],
+      },
+    ]);
+
+    const result = await listEstablishments();
+
+    expect(result).toEqual([
+      expect.objectContaining({ averageScore: 4.3, reviewCount: 2, hasReviews: true }),
+    ]);
+  });
 });
 
-describe("getEstablishmentById (SPEC-030)", () => {
-  it("retorna la ficha con sus relaciones", async () => {
+describe("getEstablishmentById (SPEC-030 + SPEC-040)", () => {
+  it("retorna la ficha con sus relaciones y sin valoraciones", async () => {
     const detail = { ...sampleItem, address: "Calle Mayor 1", description: null };
     findUnique.mockResolvedValue(detail);
 
-    await expect(getEstablishmentById("est-1")).resolves.toEqual(detail);
+    const result = await getEstablishmentById("est-1");
+
+    expect(result).toEqual({ ...detail, reviews: undefined, ...sampleSummary });
     expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "est-1" } }));
+  });
+
+  it("incluye la media cuando existen puntuaciones", async () => {
+    findUnique.mockResolvedValue({
+      ...sampleItem,
+      address: "Calle Mayor 1",
+      description: null,
+      reviews: [{ scores: [{ score: 3 }, { score: 3 }] }],
+    });
+
+    const result = await getEstablishmentById("est-1");
+
+    expect(result).toEqual(
+      expect.objectContaining({ averageScore: 3, reviewCount: 1, hasReviews: true }),
+    );
   });
 
   it("retorna null si no existe", async () => {

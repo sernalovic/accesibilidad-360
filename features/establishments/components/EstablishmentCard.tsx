@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { formatScoreSummary } from "../utils/score-format";
 import type { EstablishmentListItem } from "../services/establishment.service";
 
 const dateFormatter = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" });
@@ -19,6 +20,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" });
 // anidar interactivos. Sin acciones de editar ni eliminar.
 export function EstablishmentCard({ establishment }: { establishment: EstablishmentListItem }) {
   const detailUrl = `/establishments/${establishment.id}`;
+  const summary = formatScoreSummary(establishment);
 
   return (
     <Card className="relative">
@@ -36,6 +38,9 @@ export function EstablishmentCard({ establishment }: { establishment: Establishm
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <p>
+          {summary.scoreText} · {summary.reviewsText}
+        </p>
         <p>
           {establishment.municipality}, {establishment.province}
         </p>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { Container } from "@/components/layout/Container";
+import { formatScoreSummary } from "@/features/establishments/utils/score-format";
 import { getEstablishmentById } from "@/features/establishments/services/establishment.service";
 import { listCriteria } from "@/features/reviews/services/criterion.service";
 import { listReviewsByEstablishment } from "@/features/reviews/services/review.service";
@@ -30,11 +31,15 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
   if (!establishment) {
     notFound();
   }
+  const summary = formatScoreSummary(establishment);
 
   return (
     <main>
       <Container>
         <h1>{establishment.name}</h1>
+        <p>
+          {summary.scoreText} · {summary.reviewsText}
+        </p>
         <p>{establishment.category.name}</p>
         <dl>
           <div>
