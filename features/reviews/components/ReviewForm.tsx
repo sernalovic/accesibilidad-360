@@ -78,7 +78,7 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
       onSubmit={handleSubmit(onSubmit, onInvalid)}
       noValidate
       aria-label="Formulario de valoración"
-      className="space-y-6"
+      className="space-y-8"
     >
       {formError && (
         <p role="alert" className="rounded-md border px-3 py-2 text-sm">
@@ -107,14 +107,13 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
           <CardTitle>Escala de puntuación</CardTitle>
         </CardHeader>
         <CardContent>
-          <dl
-            aria-label="Significado de las puntuaciones"
-            className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-          >
+          <dl aria-label="Significado de las puntuaciones" className="flex flex-wrap gap-2">
             {SCORE_VALUES.map((value) => (
-              <div key={value}>
-                <dt>{value}</dt>
-                <dd>{scoreLabel(value)}</dd>
+              <div key={value} className="rounded-md bg-muted px-2 py-1 text-sm">
+                <dt className="sr-only">{`Valor ${value}`}</dt>
+                <dd>
+                  {value} · {scoreLabel(value)}
+                </dd>
               </div>
             ))}
           </dl>

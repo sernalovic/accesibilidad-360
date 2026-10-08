@@ -59,6 +59,9 @@ export async function uploadPhotoAction(
     ) {
       return { success: false, message: error.message };
     }
+
+    console.error(error);
+
     return {
       success: false,
       message: "No se ha podido subir la fotografía. Inténtalo de nuevo.",
