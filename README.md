@@ -9,11 +9,13 @@ Proyecto desarrollado como Trabajo Fin de Máster en Programación con Inteligen
 Implementado y verificado (build + lint + tests en verde):
 
 - **Autenticación (Auth.js v5):** registro con hash bcrypt, inicio de sesión con Credentials, cierre de sesión, shell protegido (`Topbar` + navegación), páginas `/login`, `/register`, `/dashboard`, `/profile` (provisional).
-- **Establecimientos:** alta con categorías (seed idempotente de 10), listado con tarjetas, ficha de detalle, media de accesibilidad dinámica. Rutas `/establishments`, `/establishments/new`, `/establishments/[id]`.
+- **Establecimientos:** alta con categorías y geografía normalizada (52 provincias + 8.192 municipios INE, sin texto libre; seed idempotente), listado con tarjetas, ficha de detalle rediseñada, media de accesibilidad dinámica. Rutas `/establishments`, `/establishments/new`, `/establishments/[id]`.
 - **Valoraciones:** formulario accesible por criterios (escala 0–5 con significados), una valoración por usuario y establecimiento, lista en la ficha.
-- **UI:** componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
+- **Fotografías:** subida a Cloudinary (solo URL + publicId en BD), una por establecimiento, visible en la ficha.
+- **Mapa:** ubicación geocodificada con Nominatim al crear (Leaflet + OpenStreetMap en la ficha; sin coords muestra aviso).
+- **UI:** landing pública, componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
 
-Pendiente (según `.specs/`): edición/eliminación, fotografías, mapa, búsqueda/filtros, dashboard funcional, administración.
+Pendiente (según `.specs/`): edición/eliminación, galerías, mapa global, búsqueda/filtros, dashboard funcional, administración.
 
 ## Tecnologías
 
@@ -22,7 +24,8 @@ Pendiente (según `.specs/`): edición/eliminación, fotografías, mapa, búsque
 - PostgreSQL (Neon) + Prisma ORM 6
 - Auth.js v5 (Credentials, sesiones JWT) + bcrypt
 - Zod + React Hook Form
-- Vitest + Testing Library + Playwright + axe-core
+- Cloudinary (fotografías) + Leaflet + React Leaflet (mapa, Nominatim para geocodificar)
+- Vitest + Testing Library + Playwright + axe-core (93 tests automatizados)
 - ESLint + Prettier + Husky + lint-staged
 
 ## Requisitos
@@ -41,7 +44,7 @@ npx prisma migrate deploy
 npx prisma db seed
 ```
 
-Variables en `.env` (ver `.env.example`): `DATABASE_URL`, `AUTH_SECRET`.
+Variables en `.env` (ver `.env.example`): `DATABASE_URL`, `AUTH_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
 
 ## Ejecución
 
@@ -59,10 +62,10 @@ npm run lint      # análisis estático
 ```text
 app/                  # rutas: (public)/, (auth)/, (protected)/, api/auth/
 components/           # ui/ (shadcn) y layout/ (Topbar, MainNav, Container)
-features/             # auth/, establishments/, reviews/ (schemas, services,
-                      #   actions, components, tests por módulo)
+features/             # auth/, establishments/, reviews/, photos/ (schemas,
+                      #   services, actions, components, tests por módulo)
 lib/                  # auth/ (Auth.js), db/ (Prisma), utils
-prisma/               # schema.prisma, migrations/, seed.ts
+prisma/               # schema.prisma, migrations/, seed.ts, data/ (INE)
 tests/                # setup, lib/, e2e/
 .specs/               # especificaciones (fuente de verdad)
 .ai/                  # arquitectura, guías y decisiones (ADR)

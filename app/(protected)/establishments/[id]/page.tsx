@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Building2, CalendarDays, ImageIcon, MapPin, Star, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { auth } from "@/lib/auth/auth";
 import { Container } from "@/components/layout/Container";
 import { formatScoreSummary } from "@/features/establishments/utils/score-format";
 import { getEstablishmentById } from "@/features/establishments/services/establishment.service";
@@ -13,7 +16,9 @@ import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewList } from "@/features/reviews/components/ReviewList";
 import { EstablishmentPhoto } from "@/features/photos/components/EstablishmentPhoto";
 import { PhotoUploadForm } from "@/features/photos/components/PhotoUploadForm";
+import { DeleteEstablishmentButton } from "@/features/establishments/components/DeleteEstablishmentButton";
 import { EstablishmentMapLoader } from "@/features/establishments/components/EstablishmentMapLoader";
+import { canManageEstablishment } from "@/features/establishments/services/establishment-permissions";
 import { listPhotosByEstablishment } from "@/features/photos/services/photo.service";
 
 export const metadata: Metadata = {
@@ -29,6 +34,7 @@ interface EstablishmentDetailPageProps {
 // Mismos datos, misma lógica, mismas rutas. Inexistente → notFound().
 export default async function EstablishmentDetailPage({ params }: EstablishmentDetailPageProps) {
   const { id } = await params;
+  const session = await auth();
   const [establishment, criteria, reviews, photos] = await Promise.all([
     getEstablishmentById(id),
     listCriteria(),
@@ -40,6 +46,9 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
   }
   const summary = formatScoreSummary(establishment);
   const [primaryPhoto] = photos;
+  const user = session?.user;
+  const canManage =
+    !!user && canManageEstablishment({ id: user.id, role: user.role }, establishment.createdById);
 
   return (
     <main>
@@ -57,6 +66,17 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
             {establishment.municipality}, {establishment.province}
           </p>
           {establishment.description && <p>{establishment.description}</p>}
+          {canManage && (
+            <div className="flex gap-2">
+              <Link
+                href={`/establishments/${establishment.id}/edit`}
+                className={buttonVariants({ variant: "outline" })}
+              >
+                Editar
+              </Link>
+              <DeleteEstablishmentButton id={establishment.id} />
+            </div>
+          )}
         </header>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">

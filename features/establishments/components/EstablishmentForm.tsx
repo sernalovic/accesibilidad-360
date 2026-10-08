@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { establishmentSchema, type EstablishmentInput } from "../schemas/establishment.schema";
 import { createEstablishmentAction } from "../actions/create-establishment.action";
+import { updateEstablishmentAction } from "../actions/update-establishment.action";
 import type { CategoryOption } from "../services/category.service";
 import type { MunicipalityOption, ProvinceOption } from "../services/geo.service";
 
@@ -17,16 +18,21 @@ interface EstablishmentFormProps {
   categories: CategoryOption[];
   provinces: ProvinceOption[];
   municipalities: MunicipalityOption[];
+  mode?: "create" | "edit";
+  establishmentId?: string;
+  initialValues?: EstablishmentInput;
 }
 
-// Formulario de nueva ficha (SPEC-030 + SPEC-035).
-// Provincia (select) y municipio dependiente filtrado en cliente
-// (datos servidos una vez desde el servidor, sin fetches).
-// La autoría la aporta la sesión.
+// Formulario de ficha (SPEC-030 + SPEC-035 + SPEC-080).
+// Mismo esquema, selects y estilos en creación y edición.
+// En edición parte de los valores actuales y vuelve a la ficha.
 export function EstablishmentForm({
   categories,
   provinces,
   municipalities,
+  mode = "create",
+  establishmentId,
+  initialValues,
 }: EstablishmentFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -41,7 +47,7 @@ export function EstablishmentForm({
     formState: { errors },
   } = useForm<EstablishmentInput>({
     resolver: zodResolver(establishmentSchema),
-    defaultValues: {
+    defaultValues: initialValues ?? {
       name: "",
       categoryId: "",
       address: "",
@@ -61,9 +67,16 @@ export function EstablishmentForm({
   const onSubmit = (values: EstablishmentInput) => {
     setFormError(null);
     startTransition(async () => {
-      const result = await createEstablishmentAction(values);
+      const result =
+        mode === "edit" && establishmentId
+          ? await updateEstablishmentAction(establishmentId, values)
+          : await createEstablishmentAction(values);
       if (result.success) {
-        router.push("/establishments");
+        router.push(
+          mode === "edit" && establishmentId
+            ? `/establishments/${establishmentId}`
+            : "/establishments",
+        );
         return;
       }
       if (result.fieldErrors) {
@@ -220,7 +233,7 @@ export function EstablishmentForm({
       </div>
 
       <Button type="submit" disabled={isPending} className="w-full">
-        {isPending ? "Guardando…" : "Guardar establecimiento"}
+        {isPending ? "Guardando…" : mode === "edit" ? "Guardar cambios" : "Guardar establecimiento"}
       </Button>
     </form>
   );
