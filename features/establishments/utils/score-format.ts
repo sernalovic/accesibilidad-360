@@ -3,6 +3,12 @@ const decimalFormatter = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 1,
 });
 
+// Decimal aislado para contextos que ya muestran su propio recuento
+// (p. ej. tarjetas compactas del dashboard).
+export function formatDecimalScore(value: number): string {
+  return decimalFormatter.format(value);
+}
+
 export interface ScoreSummaryInput {
   averageScore: number;
   reviewCount: number;

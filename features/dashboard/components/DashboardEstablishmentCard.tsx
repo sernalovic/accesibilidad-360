@@ -18,7 +18,7 @@ export function DashboardEstablishmentCard({
   return (
     <Card>
       {establishment.photoUrl && (
-        <div className="relative aspect-video w-full overflow-hidden rounded-t-xl">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-t-xl">
           <Image
             src={establishment.photoUrl}
             alt={`Fotografía de ${establishment.name}`}

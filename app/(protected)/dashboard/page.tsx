@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Building2, Camera, Star, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { auth } from "@/lib/auth/auth";
 import { Container } from "@/components/layout/Container";
 import { DashboardEstablishmentCard } from "@/features/dashboard/components/DashboardEstablishmentCard";
-import { DashboardReviewCard } from "@/features/dashboard/components/DashboardReviewCard";
+import { DashboardReviewCompactCard } from "@/features/dashboard/components/DashboardReviewCompactCard";
 import { DashboardSection } from "@/features/dashboard/components/DashboardSection";
 import { DashboardStatCard } from "@/features/dashboard/components/DashboardStatCard";
+import { formatDecimalScore } from "@/features/establishments/utils/score-format";
 import { getDashboardData } from "@/features/dashboard/services/dashboard.service";
 
 export const metadata: Metadata = {
@@ -21,7 +23,9 @@ const quickActions = [
   { href: "/profile", label: "Mi perfil" },
 ];
 
-// Panel principal funcional (SPEC-100).
+const MEDALS = ["🥇", "🥈", "🥉"] as const;
+
+// Panel principal (SPEC-100 + microfase UX).
 // Solo compone el DTO preparado por el servicio; sin cálculos aquí.
 export default async function DashboardPage() {
   const session = await auth();
@@ -35,10 +39,14 @@ export default async function DashboardPage() {
         <p>Bienvenido, {name}.</p>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <DashboardStatCard label="Establecimientos" value={data.stats.establishments} />
-          <DashboardStatCard label="Usuarios" value={data.stats.users} />
-          <DashboardStatCard label="Valoraciones" value={data.stats.reviews} />
-          <DashboardStatCard label="Fotografías" value={data.stats.photos} />
+          <DashboardStatCard
+            label="Establecimientos"
+            value={data.stats.establishments}
+            icon={Building2}
+          />
+          <DashboardStatCard label="Usuarios" value={data.stats.users} icon={Users} />
+          <DashboardStatCard label="Valoraciones" value={data.stats.reviews} icon={Star} />
+          <DashboardStatCard label="Fotografías" value={data.stats.photos} icon={Camera} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -60,13 +68,31 @@ export default async function DashboardPage() {
             {data.topRated.length === 0 ? (
               <p>Aún no hay valoraciones.</p>
             ) : (
-              <ul className="grid gap-4">
-                {data.topRated.map((establishment) => (
-                  <li key={establishment.id}>
-                    <DashboardEstablishmentCard establishment={establishment} />
+              <ol className="space-y-2">
+                {data.topRated.map((establishment, index) => (
+                  <li key={establishment.id} className="flex items-center gap-3">
+                    {index < MEDALS.length ? (
+                      <span aria-hidden="true">{MEDALS[index]}</span>
+                    ) : (
+                      <span aria-hidden="true">{index + 1}.</span>
+                    )}
+                    <span className="sr-only">Puesto {index + 1}: </span>
+                    <Link
+                      href={`/establishments/${establishment.id}`}
+                      className="min-w-0 flex-1 truncate"
+                    >
+                      {establishment.name}
+                    </Link>
+                    <span className="text-muted-foreground">{establishment.category}</span>
+                    <span>
+                      {formatDecimalScore(establishment.averageScore)} / 5 ·{" "}
+                      {establishment.reviewCount === 1
+                        ? "1 valoración"
+                        : `${establishment.reviewCount} valoraciones`}
+                    </span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             )}
           </DashboardSection>
         </div>
@@ -78,7 +104,7 @@ export default async function DashboardPage() {
             <ul className="grid gap-4 md:grid-cols-2">
               {data.latestReviews.map((review) => (
                 <li key={review.id}>
-                  <DashboardReviewCard review={review} />
+                  <DashboardReviewCompactCard review={review} />
                 </li>
               ))}
             </ul>
