@@ -94,23 +94,55 @@ model Category {
 // puntuación, coordenadas ni accesibilidad (fases posteriores).
 // `postalCode` existe como opcional pero no se solicita en el formulario.
 model Establishment {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  address      String
-  municipality String
-  province     String
-  postalCode   String?
-  categoryId   String
-  createdById  String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  address        String
+  postalCode     String?
+  latitude       Float?
+  longitude      Float?
+  provinceId     String
+  municipalityId String
+  categoryId     String
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  category  Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  createdBy User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  category     Category     @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  createdBy    User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  province     Province     @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  municipality Municipality @relation(fields: [municipalityId], references: [id], onDelete: Restrict)
 
   reviews AccessibilityReview[]
   photos  Photo[]
+}
+
+// Provincia española (SPEC-035, Fase 1).
+// `code`: código oficial INE de 2 dígitos. `name`: denominación oficial.
+// La columna de texto `Establishment.province` coexiste hasta la Fase 3.
+model Province {
+  id   String @id @default(cuid())
+  code String @unique
+  name String @unique
+
+  municipalities Municipality[]
+  establishments Establishment[]
+}
+
+// Municipio español (SPEC-035, Fase 1).
+// `code`: código oficial INE de 5 dígitos (provincia + municipio).
+// Unicidad compuesta: hay nombres repetidos entre provincias.
+// La columna de texto `Establishment.municipality` coexiste hasta la Fase 3.
+model Municipality {
+  id         String @id @default(cuid())
+  provinceId String
+  code       String @unique
+  name       String
+
+  province       Province        @relation(fields: [provinceId], references: [id], onDelete: Restrict)
+  establishments Establishment[]
+
+  @@unique([provinceId, name])
 }
 
 // Criterio de accesibilidad (SPEC-040, 1.ª entrega).

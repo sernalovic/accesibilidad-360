@@ -5,12 +5,12 @@ const validInput = {
   name: "Restaurante Ejemplo",
   categoryId: "cat-1",
   address: "Calle Mayor 1",
-  municipality: "Madrid",
-  province: "Madrid",
+  provinceId: "prov-28",
+  municipalityId: "mun-1",
   description: "Un lugar accesible.",
 };
 
-describe("establishmentSchema (SPEC-030)", () => {
+describe("establishmentSchema (SPEC-030 + SPEC-035)", () => {
   it("acepta una ficha válida", () => {
     expect(establishmentSchema.safeParse(validInput).success).toBe(true);
   });
@@ -28,10 +28,12 @@ describe("establishmentSchema (SPEC-030)", () => {
     );
   });
 
-  it("rechaza la ficha sin categoría, dirección, municipio o provincia", () => {
+  it("rechaza la ficha sin categoría, dirección, provincia o municipio", () => {
     expect(establishmentSchema.safeParse({ ...validInput, categoryId: "" }).success).toBe(false);
     expect(establishmentSchema.safeParse({ ...validInput, address: "" }).success).toBe(false);
-    expect(establishmentSchema.safeParse({ ...validInput, municipality: "" }).success).toBe(false);
-    expect(establishmentSchema.safeParse({ ...validInput, province: "" }).success).toBe(false);
+    expect(establishmentSchema.safeParse({ ...validInput, provinceId: "" }).success).toBe(false);
+    expect(establishmentSchema.safeParse({ ...validInput, municipalityId: "" }).success).toBe(
+      false,
+    );
   });
 });

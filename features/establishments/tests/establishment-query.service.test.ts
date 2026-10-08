@@ -22,12 +22,22 @@ beforeEach(() => {
 const sampleItem = {
   id: "est-1",
   name: "Restaurante Ejemplo",
+  municipality: { name: "Madrid" },
+  province: { name: "Madrid" },
+  createdAt: new Date("2026-01-01"),
+  category: { name: "Restaurante" },
+  createdBy: { name: "María" },
+  reviews: [],
+};
+
+const sampleFlat = {
+  id: "est-1",
+  name: "Restaurante Ejemplo",
   municipality: "Madrid",
   province: "Madrid",
   createdAt: new Date("2026-01-01"),
   category: { name: "Restaurante" },
   createdBy: { name: "María" },
-  reviews: [],
 };
 
 const sampleSummary = { averageScore: 0, reviewCount: 0, hasReviews: false };
@@ -38,7 +48,7 @@ describe("listEstablishments (SPEC-030)", () => {
 
     const result = await listEstablishments();
 
-    expect(result).toEqual([{ ...sampleItem, reviews: undefined, ...sampleSummary }]);
+    expect(result).toEqual([{ ...sampleFlat, ...sampleSummary }]);
     expect(findMany).toHaveBeenCalledOnce();
     expect(findMany.mock.calls[0]?.[0]?.orderBy).toEqual({ createdAt: "desc" });
     const select = findMany.mock.calls[0]?.[0]?.select;
@@ -70,12 +80,25 @@ describe("listEstablishments (SPEC-030)", () => {
 
 describe("getEstablishmentById (SPEC-030 + SPEC-040)", () => {
   it("retorna la ficha con sus relaciones y sin valoraciones", async () => {
-    const detail = { ...sampleItem, address: "Calle Mayor 1", description: null };
+    const detail = {
+      ...sampleItem,
+      address: "Calle Mayor 1",
+      description: null,
+      latitude: null,
+      longitude: null,
+    };
     findUnique.mockResolvedValue(detail);
 
     const result = await getEstablishmentById("est-1");
 
-    expect(result).toEqual({ ...detail, reviews: undefined, ...sampleSummary });
+    expect(result).toEqual({
+      ...sampleFlat,
+      address: "Calle Mayor 1",
+      description: null,
+      latitude: null,
+      longitude: null,
+      ...sampleSummary,
+    });
     expect(findUnique).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "est-1" } }));
   });
 

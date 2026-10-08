@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-// Validación de la ficha de establecimiento (SPEC-030).
-// Se aplica en cliente (UX) y siempre en servidor (seguridad).
+// Validación de la ficha de establecimiento (SPEC-030 + SPEC-035).
+// Provincia y municipio normalizados: solo identificadores de las
+// entidades oficiales. Se aplica en cliente (UX) y siempre en servidor.
 // `createdById` nunca forma parte del formulario: lo aporta la sesión.
 export const establishmentSchema = z.object({
   name: z
@@ -17,14 +18,14 @@ export const establishmentSchema = z.object({
     .string({ required_error: "La dirección es obligatoria." })
     .trim()
     .min(1, "La dirección es obligatoria."),
-  municipality: z
-    .string({ required_error: "El municipio es obligatorio." })
-    .trim()
-    .min(1, "El municipio es obligatorio."),
-  province: z
+  provinceId: z
     .string({ required_error: "La provincia es obligatoria." })
     .trim()
     .min(1, "La provincia es obligatoria."),
+  municipalityId: z
+    .string({ required_error: "El municipio es obligatorio." })
+    .trim()
+    .min(1, "El municipio es obligatorio."),
   description: z.string().trim().optional(),
 });
 

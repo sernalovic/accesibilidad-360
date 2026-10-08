@@ -2,7 +2,12 @@
 
 import { auth } from "@/lib/auth/auth";
 import { establishmentSchema } from "../schemas/establishment.schema";
-import { CategoryNotFoundError, createEstablishment } from "../services/establishment.service";
+import {
+  CategoryNotFoundError,
+  MunicipalityNotFoundError,
+  ProvinceNotFoundError,
+  createEstablishment,
+} from "../services/establishment.service";
 import type { CreateEstablishmentActionResult } from "./create-establishment.types";
 
 // Server Action de creación (SPEC-030).
@@ -30,6 +35,20 @@ export async function createEstablishmentAction(
     const establishment = await createEstablishment(parsed.data, userId);
     return { success: true, id: establishment.id };
   } catch (error) {
+    if (error instanceof ProvinceNotFoundError) {
+      return {
+        success: false,
+        message: error.message,
+        fieldErrors: { provinceId: [error.message] },
+      };
+    }
+    if (error instanceof MunicipalityNotFoundError) {
+      return {
+        success: false,
+        message: error.message,
+        fieldErrors: { municipalityId: [error.message] },
+      };
+    }
     if (error instanceof CategoryNotFoundError) {
       return {
         success: false,

@@ -11,16 +11,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { establishmentSchema, type EstablishmentInput } from "../schemas/establishment.schema";
 import { createEstablishmentAction } from "../actions/create-establishment.action";
 import type { CategoryOption } from "../services/category.service";
+import type { MunicipalityOption, ProvinceOption } from "../services/geo.service";
 
 interface EstablishmentFormProps {
   categories: CategoryOption[];
+  provinces: ProvinceOption[];
+  municipalities: MunicipalityOption[];
 }
 
-// Formulario de nueva ficha (Sprint UI-001: shadcn/ui).
-// Misma lógica y accesibilidad; solo cambia la presentación.
-// El desplegable sigue siendo un <select> nativo (sin componente
-// oficial permitido para ello en esta fase).
-export function EstablishmentForm({ categories }: EstablishmentFormProps) {
+// Formulario de nueva ficha (SPEC-030 + SPEC-035).
+// Provincia (select) y municipio dependiente filtrado en cliente
+// (datos servidos una vez desde el servidor, sin fetches).
+// La autoría la aporta la sesión.
+export function EstablishmentForm({
+  categories,
+  provinces,
+  municipalities,
+}: EstablishmentFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string | null>(null);
@@ -28,6 +35,8 @@ export function EstablishmentForm({ categories }: EstablishmentFormProps) {
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     setError,
     formState: { errors },
   } = useForm<EstablishmentInput>({
@@ -36,11 +45,18 @@ export function EstablishmentForm({ categories }: EstablishmentFormProps) {
       name: "",
       categoryId: "",
       address: "",
-      municipality: "",
-      province: "",
+      provinceId: "",
+      municipalityId: "",
       description: "",
     },
   });
+
+  const selectedProvinceId = watch("provinceId");
+  const visibleMunicipalities = selectedProvinceId
+    ? municipalities.filter((municipality) => municipality.provinceId === selectedProvinceId)
+    : [];
+
+  const { onChange: onProvinceChange, ...provinceRegister } = register("provinceId");
 
   const onSubmit = (values: EstablishmentInput) => {
     setFormError(null);
@@ -132,39 +148,58 @@ export function EstablishmentForm({ categories }: EstablishmentFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-municipality">Municipio</Label>
-        <Input
-          id="establishment-municipality"
-          type="text"
-          autoComplete="address-level2"
-          aria-invalid={errors.municipality ? true : undefined}
-          aria-describedby={errors.municipality ? "establishment-municipality-error" : undefined}
-          {...register("municipality")}
-        />
-        {errors.municipality && (
-          <p
-            id="establishment-municipality-error"
-            role="alert"
-            className="text-sm text-destructive"
-          >
-            {errors.municipality.message}
+        <Label htmlFor="establishment-province">Provincia</Label>
+        <select
+          id="establishment-province"
+          aria-invalid={errors.provinceId ? true : undefined}
+          aria-describedby={errors.provinceId ? "establishment-province-error" : undefined}
+          className="w-full rounded-md border px-3 py-2 text-sm"
+          onChange={(event) => {
+            onProvinceChange(event);
+            setValue("municipalityId", "");
+          }}
+          {...provinceRegister}
+        >
+          <option value="">Selecciona una provincia</option>
+          {provinces.map((province) => (
+            <option key={province.id} value={province.id}>
+              {province.name}
+            </option>
+          ))}
+        </select>
+        {errors.provinceId && (
+          <p id="establishment-province-error" role="alert" className="text-sm text-destructive">
+            {errors.provinceId.message}
           </p>
         )}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-province">Provincia</Label>
-        <Input
-          id="establishment-province"
-          type="text"
-          autoComplete="address-level1"
-          aria-invalid={errors.province ? true : undefined}
-          aria-describedby={errors.province ? "establishment-province-error" : undefined}
-          {...register("province")}
-        />
-        {errors.province && (
-          <p id="establishment-province-error" role="alert" className="text-sm text-destructive">
-            {errors.province.message}
+        <Label htmlFor="establishment-municipality">Municipio</Label>
+        <select
+          id="establishment-municipality"
+          disabled={!selectedProvinceId}
+          aria-invalid={errors.municipalityId ? true : undefined}
+          aria-describedby={errors.municipalityId ? "establishment-municipality-error" : undefined}
+          className="w-full rounded-md border px-3 py-2 text-sm"
+          {...register("municipalityId")}
+        >
+          <option value="">
+            {selectedProvinceId ? "Selecciona un municipio" : "Primero elige una provincia"}
+          </option>
+          {visibleMunicipalities.map((municipality) => (
+            <option key={municipality.id} value={municipality.id}>
+              {municipality.name}
+            </option>
+          ))}
+        </select>
+        {errors.municipalityId && (
+          <p
+            id="establishment-municipality-error"
+            role="alert"
+            className="text-sm text-destructive"
+          >
+            {errors.municipalityId.message}
           </p>
         )}
       </div>

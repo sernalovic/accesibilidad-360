@@ -13,6 +13,7 @@ import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewList } from "@/features/reviews/components/ReviewList";
 import { EstablishmentPhoto } from "@/features/photos/components/EstablishmentPhoto";
 import { PhotoUploadForm } from "@/features/photos/components/PhotoUploadForm";
+import { EstablishmentMapLoader } from "@/features/establishments/components/EstablishmentMapLoader";
 import { listPhotosByEstablishment } from "@/features/photos/services/photo.service";
 
 export const metadata: Metadata = {
@@ -106,6 +107,29 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
             </CardContent>
           </Card>
         </div>
+
+        <Separator className="my-8" />
+
+        <section aria-labelledby="location-heading" className="space-y-4">
+          <h2 id="location-heading">Ubicación</h2>
+          {establishment.latitude !== null && establishment.longitude !== null ? (
+            <EstablishmentMapLoader
+              latitude={establishment.latitude}
+              longitude={establishment.longitude}
+              name={establishment.name}
+            />
+          ) : (
+            <Card>
+              <CardContent className="flex flex-col items-center gap-2 py-8 text-center">
+                <MapPin className="size-8 text-muted-foreground" aria-hidden="true" />
+                <p className="font-medium">Ubicación no disponible</p>
+                <p className="text-muted-foreground">
+                  Todavía no se ha podido situar este establecimiento en el mapa.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </section>
 
         <Separator className="my-8" />
 

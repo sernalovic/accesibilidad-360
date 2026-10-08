@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import type { EstablishmentInput } from "../schemas/establishment.schema";
+import { geocodeAddress } from "./geocoding.service";
 
 export class CategoryNotFoundError extends Error {
   readonly code = "CATEGORY_NOT_FOUND" as const;
@@ -7,6 +8,24 @@ export class CategoryNotFoundError extends Error {
   constructor() {
     super("La categoría seleccionada no es válida.");
     this.name = "CategoryNotFoundError";
+  }
+}
+
+export class ProvinceNotFoundError extends Error {
+  readonly code = "PROVINCE_NOT_FOUND" as const;
+
+  constructor() {
+    super("La provincia seleccionada no es válida.");
+    this.name = "ProvinceNotFoundError";
+  }
+}
+
+export class MunicipalityNotFoundError extends Error {
+  readonly code = "MUNICIPALITY_NOT_FOUND" as const;
+
+  constructor() {
+    super("El municipio seleccionado no es válido para esa provincia.");
+    this.name = "MunicipalityNotFoundError";
   }
 }
 
@@ -32,12 +51,15 @@ export interface EstablishmentListItem {
 export interface EstablishmentDetail extends EstablishmentListItem {
   address: string;
   description: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
-// Crea un establecimiento (SPEC-030).
+// Crea un establecimiento (SPEC-030) con geocodificación (SPEC-060).
 // `userId` procede siempre de la sesión, nunca del cliente.
-// Solo datos básicos de ficha; fotografías, valoraciones y
-// accesibilidad llegarán en sus fases.
+// Provincia y municipio normalizados (SPEC-035): se verifican y sus
+// nombres oficiales alimentan la geocodificación. Si esta falla,
+// los campos quedan a null sin impedir la creación.
 export async function createEstablishment(
   data: EstablishmentInput,
   userId: string,
@@ -47,13 +69,39 @@ export async function createEstablishment(
     throw new CategoryNotFoundError();
   }
 
+  const province = await prisma.province.findUnique({ where: { id: data.provinceId } });
+  if (!province) {
+    throw new ProvinceNotFoundError();
+  }
+
+  const municipality = await prisma.municipality.findUnique({
+    where: { id: data.municipalityId },
+    select: {
+      id: true,
+      name: true,
+      provinceId: true,
+      province: { select: { name: true } },
+    },
+  });
+  if (!municipality || municipality.provinceId !== province.id) {
+    throw new MunicipalityNotFoundError();
+  }
+
+  const coordinates = await geocodeAddress({
+    address: data.address,
+    municipality: municipality.name,
+    province: province.name,
+  });
+
   return prisma.establishment.create({
     data: {
       name: data.name,
       description: data.description || null,
       address: data.address,
-      municipality: data.municipality,
-      province: data.province,
+      provinceId: province.id,
+      municipalityId: municipality.id,
+      latitude: coordinates?.latitude ?? null,
+      longitude: coordinates?.longitude ?? null,
       categoryId: data.categoryId,
       createdById: userId,
     },
@@ -71,15 +119,21 @@ export async function listEstablishments(): Promise<EstablishmentListItem[]> {
     select: {
       id: true,
       name: true,
-      municipality: true,
-      province: true,
+      municipality: { select: { name: true } },
+      province: { select: { name: true } },
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
       reviews: { select: { scores: { select: { score: true } } } },
     },
   });
-  return rows.map(({ reviews, ...rest }) => ({ ...rest, ...summarizeScores(reviews) }));
+  // Se aplana a strings para no cambiar la forma consumida (SPEC-035).
+  return rows.map(({ reviews, municipality, province, ...rest }) => ({
+    ...rest,
+    municipality: municipality.name,
+    province: province.name,
+    ...summarizeScores(reviews),
+  }));
 }
 
 // Detalle para /establishments/[id] (SPEC-030, 2.ª entrega).
@@ -91,9 +145,11 @@ export async function getEstablishmentById(id: string): Promise<EstablishmentDet
       id: true,
       name: true,
       address: true,
-      municipality: true,
-      province: true,
+      municipality: { select: { name: true } },
+      province: { select: { name: true } },
       description: true,
+      latitude: true,
+      longitude: true,
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
@@ -103,8 +159,13 @@ export async function getEstablishmentById(id: string): Promise<EstablishmentDet
   if (!row) {
     return null;
   }
-  const { reviews, ...rest } = row;
-  return { ...rest, ...summarizeScores(reviews) };
+  const { reviews, municipality, province, ...rest } = row;
+  return {
+    ...rest,
+    municipality: municipality.name,
+    province: province.name,
+    ...summarizeScores(reviews),
+  };
 }
 
 interface ReviewScores {

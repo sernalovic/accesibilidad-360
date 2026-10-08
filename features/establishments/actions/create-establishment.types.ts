@@ -8,7 +8,7 @@ export interface CreateEstablishmentActionFailure {
   message: string;
   fieldErrors?: Partial<
     Record<
-      "name" | "categoryId" | "address" | "municipality" | "province" | "description",
+      "name" | "categoryId" | "address" | "provinceId" | "municipalityId" | "description",
       string[] | undefined
     >
   >;
