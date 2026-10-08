@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "prepare": "husky",
-    "kill:3000": "npx kill-port 3000"
+    "kill:3000": "npx kill-port 3000",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
