@@ -3,11 +3,7 @@
 import { AuthError, CredentialsSignin } from "next-auth";
 import { signIn } from "@/lib/auth/auth";
 import { loginSchema } from "../schemas/login.schema";
-
-export interface LoginActionFailure {
-  success: false;
-  message: string;
-}
+import type { LoginActionFailure } from "./login.types";
 
 // Server Action de inicio de sesión (SPEC-010 fase 010.4).
 // El éxito nunca retorna: Auth.js redirige a /dashboard.

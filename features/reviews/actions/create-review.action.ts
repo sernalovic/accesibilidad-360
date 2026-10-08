@@ -8,19 +8,7 @@ import {
   IncompleteScoresError,
   createReview,
 } from "../services/review.service";
-
-export interface CreateReviewActionSuccess {
-  success: true;
-  id: string;
-}
-
-export interface CreateReviewActionFailure {
-  success: false;
-  message: string;
-  fieldErrors?: Partial<Record<"comment" | "scores", string[] | undefined>>;
-}
-
-export type CreateReviewActionResult = CreateReviewActionSuccess | CreateReviewActionFailure;
+import type { CreateReviewActionResult } from "./create-review.types";
 
 // Server Action de valoración (SPEC-040).
 // Solo usuarios autenticados; `userId` siempre de la sesión.

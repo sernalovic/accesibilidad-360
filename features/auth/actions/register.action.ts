@@ -2,20 +2,7 @@
 
 import { registerSchema } from "../schemas/register.schema";
 import { EmailAlreadyExistsError, registerUser } from "../services/register.service";
-
-export interface RegisterActionSuccess {
-  success: true;
-}
-
-export interface RegisterActionFailure {
-  success: false;
-  message: string;
-  fieldErrors?: Partial<
-    Record<"name" | "email" | "password" | "confirmPassword", string[] | undefined>
-  >;
-}
-
-export type RegisterActionResult = RegisterActionSuccess | RegisterActionFailure;
+import type { RegisterActionResult } from "./register.types";
 
 // Server Action de registro (SPEC-010 fase 010.3).
 // Revalida siempre en servidor y nunca expone detalles técnicos.

@@ -3,25 +3,7 @@
 import { auth } from "@/lib/auth/auth";
 import { establishmentSchema } from "../schemas/establishment.schema";
 import { CategoryNotFoundError, createEstablishment } from "../services/establishment.service";
-
-export interface CreateEstablishmentActionSuccess {
-  success: true;
-  id: string;
-}
-
-export interface CreateEstablishmentActionFailure {
-  success: false;
-  message: string;
-  fieldErrors?: Partial<
-    Record<
-      "name" | "categoryId" | "address" | "municipality" | "province" | "description",
-      string[] | undefined
-    >
-  >;
-}
-
-export type CreateEstablishmentActionResult =
-  CreateEstablishmentActionSuccess | CreateEstablishmentActionFailure;
+import type { CreateEstablishmentActionResult } from "./create-establishment.types";
 
 // Server Action de creación (SPEC-030).
 // Solo usuarios autenticados; `createdById` siempre de la sesión.

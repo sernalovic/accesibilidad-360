@@ -8,13 +8,7 @@ import {
   PhotoTooSmallError,
   uploadEstablishmentPhoto,
 } from "../services/photo.service";
-
-export interface UploadPhotoState {
-  success: boolean;
-  message: string | null;
-}
-
-export const initialUploadPhotoState: UploadPhotoState = { success: false, message: null };
+import type { UploadPhotoState } from "./upload-photo.types";
 
 // Server Action de subida (SPEC-050). Compatible con useActionState:
 // recibe el FormData del formulario (establishmentId + photo).
