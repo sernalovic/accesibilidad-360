@@ -145,16 +145,20 @@ model Municipality {
   @@unique([provinceId, name])
 }
 
-// Criterio de accesibilidad (SPEC-040, 1.ª entrega).
+// Criterio de accesibilidad (SPEC-040 + SPEC-045).
 // Versión simplificada del dominio: sin code, weight, active ni icon.
 // `name` es único para permitir un seed idempotente.
+// `allowsNotApplicable`: solo algunos criterios admiten «No aplicable»
+// (se excluyen de las medias); `null` en la puntuación lo representa,
+// nunca un valor mágico.
 // `order` define el orden de presentación en el formulario.
 model Criterion {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  order       Int
-  createdAt   DateTime @default(now())
+  id                  String   @id @default(cuid())
+  name                String   @unique
+  description         String?
+  order               Int
+  allowsNotApplicable Boolean  @default(false)
+  createdAt           DateTime @default(now())
 
   scores CriterionScore[]
 }
@@ -179,13 +183,14 @@ model AccessibilityReview {
   @@unique([establishmentId, userId])
 }
 
-// Puntuación de un criterio dentro de una valoración (SPEC-040).
+// Puntuación de un criterio dentro de una valoración (SPEC-040 + SPEC-045).
 // Entero de 0 a 5 (rango validado en Zod y servicio).
+// `null` significa «No aplicable» (solo en criterios permitidos).
 model CriterionScore {
   id          String @id @default(cuid())
   reviewId    String
   criterionId String
-  score       Int
+  score       Int?
 
   review    AccessibilityReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
   criterion Criterion           @relation(fields: [criterionId], references: [id], onDelete: Restrict)

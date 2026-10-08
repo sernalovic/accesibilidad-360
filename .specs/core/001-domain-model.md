@@ -4,7 +4,7 @@
 
 **Nombre:** Modelo de dominio
 
-**Versión:** 1.0
+**Versión:** 1.1
 
 **Estado:** Aprobada
 
@@ -14,10 +14,14 @@
 
 **Bloquea:**
 
-- 002-infrastructure.md
+- 002-system-architecture.md
+- 003-infrastructure.md
 - 010-authentication-and-authorization.md
 - 020-user-management.md
 - 030-establishment-management.md
+- 035-normalización-geográfica
+- 040-accessibility-reviews.md
+- 050-photo-management.md
 
 ---
 
@@ -33,6 +37,8 @@ No describe tecnologías.
 
 No define interfaces de usuario.
 
+Las entidades técnicas de autenticación se describen aparte, en la sección 4, únicamente para delimitar qué no pertenece al dominio.
+
 ---
 
 # 2. Principios
@@ -47,9 +53,7 @@ El modelo deberá:
 
 ---
 
-# 3. Entidades
-
-El dominio estará compuesto inicialmente por las siguientes entidades.
+# 3. Entidades de dominio
 
 ## User
 
@@ -72,19 +76,29 @@ Representa un establecimiento físico.
 Puede corresponder a:
 
 - restaurante;
+- bar;
 - cafetería;
 - comercio;
-- centro sanitario;
-- edificio público;
+- supermercado;
 - hotel;
-- museo;
+- centro sanitario;
+- centro público;
+- instalación deportiva;
 - etc.
+
+Un establecimiento tiene obligatoriamente:
+
+- una categoría;
+- una provincia;
+- un municipio;
+- un creador (propietario inicial).
 
 Un establecimiento puede tener:
 
 - varias fotografías;
-- varias valoraciones;
-- un propietario (opcional).
+- varias valoraciones.
+
+Su ubicación geográfica (latitud y longitud) puede no estar disponible.
 
 ---
 
@@ -97,7 +111,7 @@ Una valoración siempre pertenece a:
 - un usuario;
 - un establecimiento.
 
-Cada usuario únicamente podrá tener una valoración activa por establecimiento.
+Cada usuario únicamente podrá tener una valoración por establecimiento.
 
 ---
 
@@ -110,31 +124,96 @@ Una fotografía pertenece a:
 - un establecimiento;
 - un usuario.
 
+El archivo vive en almacenamiento externo; en el dominio solo existen su URL y su identificador remoto.
+
 ---
 
 ## Category
 
 Clasifica los establecimientos.
 
-Ejemplos:
+Categorías iniciales:
 
-- Restauración
+- Restaurante
+- Bar
+- Cafetería
 - Comercio
-- Administración
-- Sanidad
-- Educación
-- Turismo
-- Ocio
+- Supermercado
+- Hotel
+- Centro sanitario
+- Centro público
+- Instalación deportiva
+- Otro
 
 ---
 
-# 4. Relaciones
+## Province
+
+Provincia española con su código oficial del INE (2 dígitos).
+
+Ejemplos: Madrid (28), Barcelona (08), Sevilla (41).
+
+---
+
+## Municipality
+
+Municipio español con su código oficial del INE (5 dígitos).
+
+Pertenece siempre a una provincia. Hay nombres repetidos entre provincias.
+
+---
+
+## Criterion
+
+Representa un criterio de accesibilidad que puede evaluarse en un establecimiento.
+
+Criterios iniciales, en orden de presentación:
+
+1. Acceso sin escalones
+2. Puerta accesible
+3. Anchura de paso
+4. Espacio de giro
+5. Aseo adaptado
+6. Ascensor accesible
+7. Aparcamiento para personas con movilidad reducida
+8. Señalización accesible
+
+Cada criterio podrá reutilizarse en cualquier establecimiento.
+
+Solo algunos criterios admiten la calificación «No aplicable».
+
+---
+
+## CriterionScore
+
+Representa la puntuación que un usuario asigna a un criterio concreto dentro de una valoración.
+
+Cada registro pertenece a:
+
+- una valoración;
+- un criterio.
+
+La puntuación es un entero de 0 a 5, o nula cuando el criterio no resulta aplicable al establecimiento. Lo nulo nunca es un cero: los criterios no aplicables se excluyen de las medias.
+
+---
+
+# 4. Entidades técnicas (Auth.js)
+
+No pertenecen al dominio. Existen únicamente para la autenticación y se detallan en SPEC-010, no aquí:
+
+- `Account`: vincula un usuario con un proveedor de autenticación.
+- `Session`: sesión persistente (reservada; las sesiones actuales son JWT sin persistencia).
+- `VerificationToken`: tokens de un solo uso (p. ej. recuperación).
+
+---
+
+# 5. Relaciones
 
 User
 
 1:N
 
-Establishment
+Establishment (como creador, obligatorio)
 
 ---
 
@@ -162,6 +241,30 @@ Establishment
 
 ---
 
+Province
+
+1:N
+
+Municipality
+
+---
+
+Province
+
+1:N
+
+Establishment
+
+---
+
+Municipality
+
+1:N
+
+Establishment
+
+---
+
 Establishment
 
 1:N
@@ -182,28 +285,29 @@ AccessibilityReview
 
 1:N
 
-AccessibilityCriterionScore
+CriterionScore
 
 ---
 
-AccessibilityCriterion
+Criterion
 
 1:N
 
-AccessibilityCriterionScore
+CriterionScore
 
 ---
 
-# 5. Atributos
+# 6. Atributos
 
 ## User
 
 - id
 - name
-- email
-- password
-- role
-- avatar
+- email (único)
+- emailVerified (opcional, para futura verificación)
+- image (avatar, opcional)
+- passwordHash (opcional; nunca texto plano)
+- role (USER por defecto)
 - createdAt
 - updatedAt
 
@@ -213,18 +317,19 @@ AccessibilityCriterionScore
 
 - id
 - name
-- description
+- description (opcional)
 - address
-- postalCode
-- city
-- province
-- latitude
-- longitude
-- accessibilityScore
-- category
-- createdBy
+- postalCode (opcional)
+- latitude (opcional; nula si la geocodificación no la obtuvo)
+- longitude (opcional; nula si la geocodificación no la obtuvo)
+- provinceId
+- municipalityId
+- categoryId
+- createdById
 - createdAt
 - updatedAt
+
+No existe puntuación persistida: las medias se calculan dinámicamente y nunca se almacenan.
 
 ---
 
@@ -233,13 +338,11 @@ AccessibilityCriterionScore
 - id
 - establishmentId
 - userId
-- comment
+- comment (opcional; opinión general del establecimiento)
 - createdAt
 - updatedAt
 
-El comentario de la valoración representa una opinión general del establecimiento.
-
-Las observaciones específicas de cada aspecto de accesibilidad se almacenarán en los correspondientes `AccessibilityCriterionScore`.
+Unicidad: un usuario, una valoración por establecimiento.
 
 ---
 
@@ -249,7 +352,9 @@ Las observaciones específicas de cada aspecto de accesibilidad se almacenarán 
 - establishmentId
 - userId
 - url
-- caption
+- publicId (identificador remoto, para futuras operaciones)
+- caption (opcional, reservado)
+- isPrimary (prepara múltiples futuras)
 - createdAt
 
 ---
@@ -257,64 +362,54 @@ Las observaciones específicas de cada aspecto de accesibilidad se almacenarán 
 ## Category
 
 - id
-- name
-- icon
+- name (único)
+- icon (opcional, reservado)
+- createdAt
 
 ---
 
-## AccessibilityCriterion
-
-Representa un criterio de accesibilidad que puede evaluarse en un establecimiento.
-
-Ejemplos:
-
-- Acceso sin escalones
-- Puertas accesibles
-- Ascensor
-- Aseo adaptado
-- Aparcamiento PMR
-- Espacios de giro
-- Mostrador accesible
-- Señalización accesible
-
-Cada criterio podrá reutilizarse en cualquier establecimiento.
-
-Atributos:
+## Province
 
 - id
-- code
-- name
-- description
-- icon
-- weight
-- active
-- applicableByDefault
+- code (código INE de 2 dígitos, único)
+- name (denominación oficial, única)
 
 ---
 
-## AccessibilityCriterionScore
+## Municipality
 
-Representa la puntuación que un usuario asigna a un criterio concreto dentro de una valoración.
+- id
+- provinceId
+- code (código INE de 5 dígitos, único)
+- name
 
-Cada registro pertenece a:
+Unicidad: nombre único dentro de su provincia.
 
-- una valoración;
-- un criterio.
+---
 
-Además de la puntuación, el usuario puede añadir un comentario opcional para aportar contexto sobre ese aspecto concreto de la accesibilidad.
+## Criterion
 
-Atributos:
+- id
+- name (único)
+- description (opcional)
+- order (orden de presentación)
+- allowsNotApplicable (solo algunos criterios)
+- createdAt
+
+---
+
+## CriterionScore
 
 - id
 - reviewId
 - criterionId
-- score
-- comment
+- score (entero 0–5, o nulo si «No aplicable»)
+
+Unicidad: un criterio, una puntuación por valoración.
 
 ---
 
-
-# 6. Reglas de negocio
+# 7. Reglas de negocio
 
 ## Usuarios
 
@@ -324,17 +419,19 @@ Un usuario puede eliminar su cuenta.
 
 No puede eliminar contenido perteneciente a otros usuarios.
 
+Solo el creador o un administrador puede editar o eliminar un establecimiento.
+
 ---
 
 ## Establecimientos
 
 El nombre es obligatorio.
 
-La ubicación es obligatoria.
+La dirección, la provincia y el municipio son obligatorios (normalizados, sin texto libre).
 
 Debe pertenecer a una categoría.
 
-No podrá existir un establecimiento duplicado en la misma dirección.
+La ubicación geográfica es opcional: sin coordenadas no hay mapa, pero la ficha sigue siendo válida.
 
 ---
 
@@ -342,7 +439,7 @@ No podrá existir un establecimiento duplicado en la misma dirección.
 
 Un usuario únicamente puede tener una valoración por establecimiento.
 
-Una valoración podrá modificarse.
+Una valoración exige puntuar todos los criterios: con número (0–5) o con «No aplicable» donde esté permitido.
 
 No podrá valorarse un establecimiento inexistente.
 
@@ -352,11 +449,7 @@ No podrá valorarse un establecimiento inexistente.
 
 Las fotografías deberán estar asociadas a un establecimiento.
 
-Podrán eliminarse por:
-
-- propietario;
-- moderador;
-- administrador.
+En esta versión, un establecimiento admite una única fotografía.
 
 ---
 
@@ -366,13 +459,9 @@ Los criterios son comunes para toda la aplicación.
 
 Cada criterio puede utilizarse en miles de valoraciones.
 
-Un criterio podrá desactivarse sin eliminar el histórico.
-
-El peso del criterio permitirá calcular el Índice de Accesibilidad.
-
 ---
 
-## AccessibilityScore
+## Escala de puntuación
 
 - 0 Muy deficiente
 - 1 Deficiente
@@ -381,33 +470,25 @@ El peso del criterio permitirá calcular el Índice de Accesibilidad.
 - 4 Muy buena
 - 5 Excelente
 
----
+Las puntuaciones nulas («No aplicable») nunca entran en las medias.
 
-## Puntuaciones de criterios
-
-Cada criterio evaluado deberá tener una puntuación.
-
-El comentario será opcional.
-
-La puntuación deberá estar comprendida entre 0 y 5.
-
-Una valoración podrá contener tantos criterios como estén activos en el sistema.
-
-Los comentarios deberán referirse únicamente al criterio evaluado y no al establecimiento en general.
+Ejemplo: 5, 5, 4 y un «No aplicable» dan (5 + 5 + 4) / 3, nunca / 4.
 
 ---
 
-# 7. Enumeraciones
+# 8. Enumeraciones
 
-## UserRole
+## Role
 
 - USER
 - MODERATOR
 - ADMIN
 
+Todos los nuevos usuarios reciben USER.
+
 ---
 
-# 8. Eventos de dominio
+# 9. Eventos de dominio
 
 El sistema deberá contemplar los siguientes eventos:
 
@@ -418,6 +499,8 @@ UserUpdated
 EstablishmentCreated
 
 EstablishmentUpdated
+
+EstablishmentDeleted
 
 ReviewCreated
 
@@ -431,19 +514,23 @@ Aunque inicialmente no exista un sistema de eventos, estos conceptos forman part
 
 ---
 
-# 9. Restricciones
+# 10. Restricciones
 
 No podrán existir:
 
 - usuarios duplicados;
 - categorías duplicadas;
-- valoraciones duplicadas;
+- criterios duplicados;
+- provincias duplicadas;
+- municipios duplicados dentro de su provincia;
+- valoraciones duplicadas (mismo usuario y establecimiento);
+- puntuaciones duplicadas (misma valoración y criterio);
 - fotografías sin establecimiento;
-- establecimientos sin categoría.
+- establecimientos sin categoría, provincia, municipio o creador.
 
 ---
 
-# 10. Diagrama del dominio
+# 11. Diagrama del dominio
 
 ```mermaid
 erDiagram
@@ -454,17 +541,25 @@ USER ||--o{ PHOTO : uploads
 
 CATEGORY ||--o{ ESTABLISHMENT : classifies
 
+PROVINCE ||--o{ MUNICIPALITY : contains
+PROVINCE ||--o{ ESTABLISHMENT : locates
+
+MUNICIPALITY ||--o{ ESTABLISHMENT : locates
+
 ESTABLISHMENT ||--o{ ACCESSIBILITY_REVIEW : receives
 ESTABLISHMENT ||--o{ PHOTO : contains
 
-ACCESSIBILITY_REVIEW ||--o{ ACCESSIBILITY_CRITERION_SCORE : contains
+ACCESSIBILITY_REVIEW ||--o{ CRITERION_SCORE : contains
 
-ACCESSIBILITY_CRITERION ||--o{ ACCESSIBILITY_CRITERION_SCORE : evaluates
+CRITERION ||--o{ CRITERION_SCORE : evaluates
+
+USER ||--o{ ACCOUNT : links
+USER ||--o{ SESSION : holds
 ```
 
 ---
 
-# 11. Glosario
+# 12. Glosario
 
 **Establecimiento**
 
@@ -484,7 +579,37 @@ Grado en que un establecimiento puede ser utilizado por personas con discapacida
 
 ---
 
-# 12. Definition of Ready
+**Provincia**
+
+División territorial oficial (código INE) a la que pertenece un establecimiento.
+
+---
+
+**Municipio**
+
+Localidad oficial (código INE) donde se sitúa un establecimiento.
+
+---
+
+**Criterio**
+
+Aspecto concreto de accesibilidad evaluable, reutilizable en cualquier establecimiento.
+
+---
+
+**Fotografía**
+
+Imagen de un establecimiento, almacenada externamente y referenciada por URL.
+
+---
+
+**No aplicable**
+
+Calificación de un criterio que, por la naturaleza del establecimiento, no le resulta aplicable. No es un cero y no interviene en las medias.
+
+---
+
+# 13. Definition of Ready
 
 El modelo estará listo para implementarse cuando:
 
@@ -494,7 +619,7 @@ El modelo estará listo para implementarse cuando:
 
 ---
 
-# 13. Definition of Done
+# 14. Definition of Done
 
 Esta especificación se considerará finalizada cuando:
 

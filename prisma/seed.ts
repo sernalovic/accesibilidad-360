@@ -26,15 +26,15 @@ const CATEGORIES = [
   "Otro",
 ] as const;
 
-const CRITERIA = [
-  "Acceso sin escalones",
-  "Puerta accesible",
-  "Anchura de paso",
-  "Espacio de giro",
-  "Aseo adaptado",
-  "Ascensor accesible",
-  "Aparcamiento PMR",
-  "Señalización accesible",
+const CRITERIA: { name: string; allowsNotApplicable: boolean }[] = [
+  { name: "Acceso sin escalones", allowsNotApplicable: false },
+  { name: "Puerta accesible", allowsNotApplicable: false },
+  { name: "Anchura de paso", allowsNotApplicable: false },
+  { name: "Espacio de giro", allowsNotApplicable: false },
+  { name: "Aseo adaptado", allowsNotApplicable: false },
+  { name: "Ascensor accesible", allowsNotApplicable: true },
+  { name: "Aparcamiento para personas con movilidad reducida", allowsNotApplicable: true },
+  { name: "Señalización accesible", allowsNotApplicable: false },
 ] as const;
 
 // Denominaciones oficiales INE (Registro de Entidades Locales).
@@ -108,11 +108,22 @@ async function main(): Promise<void> {
     });
   }
 
-  for (const [index, name] of CRITERIA.entries()) {
+  // Renombre idempotente de la denominación antigua (SPEC-045).
+  // Tras la primera ejecución no encuentra filas y no hace nada.
+  await prisma.criterion.updateMany({
+    where: { name: "Aparcamiento PMR" },
+    data: { name: "Aparcamiento para personas con movilidad reducida" },
+  });
+
+  for (const [index, criterion] of CRITERIA.entries()) {
     await prisma.criterion.upsert({
-      where: { name },
-      update: { order: index + 1 },
-      create: { name, order: index + 1 },
+      where: { name: criterion.name },
+      update: { order: index + 1, allowsNotApplicable: criterion.allowsNotApplicable },
+      create: {
+        name: criterion.name,
+        order: index + 1,
+        allowsNotApplicable: criterion.allowsNotApplicable,
+      },
     });
   }
 

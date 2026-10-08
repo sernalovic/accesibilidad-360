@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { canManageOwnerOrAdmin, type Actor } from "@/lib/permissions";
 import { deleteUploadedPhoto, uploadPhotoBuffer } from "./photo-storage.service";
 
 // Dimensiones mínimas documentadas en SPEC-050.
@@ -40,6 +41,7 @@ export interface StoredPhoto {
 export interface EstablishmentPhotoItem {
   id: string;
   url: string;
+  userId: string;
 }
 
 // Sube la fotografía de un establecimiento (SPEC-050, 1.ª entrega).
@@ -120,6 +122,44 @@ export async function listPhotosByEstablishment(
   return prisma.photo.findMany({
     where: { establishmentId },
     orderBy: { createdAt: "asc" },
-    select: { id: true, url: true },
+    select: { id: true, url: true, userId: true },
   });
+}
+
+export class PhotoNotFoundError extends Error {
+  readonly code = "PHOTO_NOT_FOUND" as const;
+
+  constructor() {
+    super("La fotografía no existe.");
+    this.name = "PhotoNotFoundError";
+  }
+}
+
+export class ForbiddenPhotoError extends Error {
+  readonly code = "FORBIDDEN_PHOTO" as const;
+
+  constructor() {
+    super("No tienes permiso para eliminar esta fotografía.");
+    this.name = "ForbiddenPhotoError";
+  }
+}
+
+// Elimina una fotografía (SPEC-110).
+// Solo su autor o ADMIN. Primero Cloudinary y después la BD:
+// si Cloudinary falla, el registro se conserva (reintentable).
+export async function deletePhoto(id: string, actor: Actor): Promise<{ establishmentId: string }> {
+  const photo = await prisma.photo.findUnique({
+    where: { id },
+    select: { id: true, userId: true, publicId: true, establishmentId: true },
+  });
+  if (!photo) {
+    throw new PhotoNotFoundError();
+  }
+  if (!canManageOwnerOrAdmin(actor, photo.userId)) {
+    throw new ForbiddenPhotoError();
+  }
+
+  await deleteUploadedPhoto(photo.publicId);
+  await prisma.photo.delete({ where: { id } });
+  return { establishmentId: photo.establishmentId };
 }

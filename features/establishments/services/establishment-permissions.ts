@@ -1,4 +1,5 @@
 import type { Role } from "@prisma/client";
+import { canManageOwnerOrAdmin } from "@/lib/permissions";
 
 export interface EstablishmentActor {
   id: string;
@@ -24,8 +25,10 @@ export class ForbiddenEstablishmentError extends Error {
 }
 
 // Solo el creador o un administrador (SPEC-080).
+// Delega en la regla compartida de lib/permissions (SPEC-110);
+// se conserva para no romper importadores existentes.
 // Pura y testeable; la comprobación definitiva ocurre en servidor
 // contra el createdById persistido, nunca con datos del cliente.
 export function canManageEstablishment(actor: EstablishmentActor, ownerId: string): boolean {
-  return actor.id === ownerId || actor.role === "ADMIN";
+  return canManageOwnerOrAdmin(actor, ownerId);
 }

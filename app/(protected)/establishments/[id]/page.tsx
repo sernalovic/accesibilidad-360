@@ -15,10 +15,12 @@ import { listReviewsByEstablishment } from "@/features/reviews/services/review.s
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewList } from "@/features/reviews/components/ReviewList";
 import { EstablishmentPhoto } from "@/features/photos/components/EstablishmentPhoto";
+import { DeletePhotoButton } from "@/features/photos/components/DeletePhotoButton";
 import { PhotoUploadForm } from "@/features/photos/components/PhotoUploadForm";
 import { DeleteEstablishmentButton } from "@/features/establishments/components/DeleteEstablishmentButton";
 import { EstablishmentMapLoader } from "@/features/establishments/components/EstablishmentMapLoader";
 import { canManageEstablishment } from "@/features/establishments/services/establishment-permissions";
+import { canManageOwnerOrAdmin } from "@/lib/permissions";
 import { listPhotosByEstablishment } from "@/features/photos/services/photo.service";
 
 export const metadata: Metadata = {
@@ -49,6 +51,15 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
   const user = session?.user;
   const canManage =
     !!user && canManageEstablishment({ id: user.id, role: user.role }, establishment.createdById);
+  const canDeletePhoto =
+    !!user &&
+    !!primaryPhoto &&
+    canManageOwnerOrAdmin({ id: user.id, role: user.role }, primaryPhoto.userId);
+  const canDeleteIds = user
+    ? reviews
+        .filter((review) => canManageOwnerOrAdmin({ id: user.id, role: user.role }, review.userId))
+        .map((review) => review.id)
+    : [];
 
   return (
     <main>
@@ -82,7 +93,10 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
             {primaryPhoto ? (
-              <EstablishmentPhoto url={primaryPhoto.url} establishmentName={establishment.name} />
+              <>
+                <EstablishmentPhoto url={primaryPhoto.url} establishmentName={establishment.name} />
+                {canDeletePhoto && <DeletePhotoButton id={primaryPhoto.id} />}
+              </>
             ) : (
               <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-muted text-muted-foreground">
                 <ImageIcon className="size-8" aria-hidden="true" />
@@ -159,7 +173,7 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
           {reviews.length === 0 ? (
             <p>Aún no hay valoraciones. ¡Sé la primera persona en valorar este establecimiento!</p>
           ) : (
-            <ReviewList reviews={reviews} />
+            <ReviewList reviews={reviews} canDeleteIds={canDeleteIds} />
           )}
         </section>
       </Container>

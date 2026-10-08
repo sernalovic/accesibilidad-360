@@ -117,6 +117,21 @@ describe("getEstablishmentById (SPEC-030 + SPEC-040)", () => {
     );
   });
 
+  it("excluye los «No aplicable» de la media: (5+5+4)/3 (SPEC-045)", async () => {
+    findUnique.mockResolvedValue({
+      ...sampleItem,
+      address: "Calle Mayor 1",
+      description: null,
+      reviews: [{ scores: [{ score: 5 }, { score: 5 }, { score: 4 }, { score: null }] }],
+    });
+
+    const result = await getEstablishmentById("est-1");
+
+    expect(result).toEqual(
+      expect.objectContaining({ averageScore: 4.7, reviewCount: 1, hasReviews: true }),
+    );
+  });
+
   it("retorna null si no existe", async () => {
     findUnique.mockResolvedValue(null);
 

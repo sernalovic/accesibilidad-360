@@ -6,6 +6,7 @@ import {
   DuplicateReviewError,
   EstablishmentNotFoundError,
   IncompleteScoresError,
+  NotApplicableNotAllowedError,
   createReview,
 } from "../services/review.service";
 import type { CreateReviewActionResult } from "./create-review.types";
@@ -33,7 +34,11 @@ export async function createReviewAction(input: unknown): Promise<CreateReviewAc
     const review = await createReview(parsed.data, userId);
     return { success: true, id: review.id };
   } catch (error) {
-    if (error instanceof DuplicateReviewError || error instanceof IncompleteScoresError) {
+    if (
+      error instanceof DuplicateReviewError ||
+      error instanceof IncompleteScoresError ||
+      error instanceof NotApplicableNotAllowedError
+    ) {
       return { success: false, message: error.message };
     }
     if (error instanceof EstablishmentNotFoundError) {

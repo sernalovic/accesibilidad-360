@@ -49,4 +49,21 @@ describe("reviewSchema (SPEC-040)", () => {
       ]);
     }
   });
+
+  it("convierte «na» en null estructural (la regla vive en el servicio)", () => {
+    const result = reviewSchema.safeParse({
+      ...validInput,
+      scores: [
+        { criterionId: "crit-1", score: 5 },
+        { criterionId: "crit-2", score: "na" },
+      ],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scores).toEqual([
+        { criterionId: "crit-1", score: 5 },
+        { criterionId: "crit-2", score: null },
+      ]);
+    }
+  });
 });

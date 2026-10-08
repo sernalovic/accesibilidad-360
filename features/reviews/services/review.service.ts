@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { canManageOwnerOrAdmin, type Actor } from "@/lib/permissions";
 import type { ReviewInput } from "../schemas/review.schema";
 
 export class EstablishmentNotFoundError extends Error {
@@ -28,6 +29,15 @@ export class IncompleteScoresError extends Error {
   }
 }
 
+export class NotApplicableNotAllowedError extends Error {
+  readonly code = "NOT_APPLICABLE_NOT_ALLOWED" as const;
+
+  constructor() {
+    super("Este criterio no admite «No aplicable».");
+    this.name = "NotApplicableNotAllowedError";
+  }
+}
+
 export interface CreatedReview {
   id: string;
 }
@@ -36,8 +46,9 @@ export interface ReviewWithScores {
   id: string;
   comment: string | null;
   createdAt: Date;
+  userId: string;
   user: { name: string | null };
-  scores: { score: number; criterion: { name: string } }[];
+  scores: { score: number | null; criterion: { name: string } }[];
 }
 
 // Crea una valoración con todas sus puntuaciones en una única
@@ -59,7 +70,12 @@ export async function createReview(data: ReviewInput, userId: string): Promise<C
     throw new DuplicateReviewError();
   }
 
-  const criteria = await prisma.criterion.findMany({ select: { id: true } });
+  const criteria = await prisma.criterion.findMany({
+    select: { id: true, allowsNotApplicable: true },
+  });
+  const allowsNotApplicableById = new Map(
+    criteria.map((criterion) => [criterion.id, criterion.allowsNotApplicable]),
+  );
   const requiredIds = new Set(criteria.map((criterion) => criterion.id));
   const providedIds = new Set(data.scores.map((score) => score.criterionId));
   const complete =
@@ -68,6 +84,11 @@ export async function createReview(data: ReviewInput, userId: string): Promise<C
     [...requiredIds].every((id) => providedIds.has(id));
   if (!complete) {
     throw new IncompleteScoresError();
+  }
+  for (const score of data.scores) {
+    if (score.score === null && !allowsNotApplicableById.get(score.criterionId)) {
+      throw new NotApplicableNotAllowedError();
+    }
   }
 
   return prisma.$transaction(async (tx) => {
@@ -102,6 +123,7 @@ export async function listReviewsByEstablishment(
       id: true,
       comment: true,
       createdAt: true,
+      userId: true,
       user: { select: { name: true } },
       scores: {
         select: { score: true, criterion: { select: { name: true } } },
@@ -109,4 +131,41 @@ export async function listReviewsByEstablishment(
       },
     },
   });
+}
+
+export class ReviewNotFoundError extends Error {
+  readonly code = "REVIEW_NOT_FOUND" as const;
+
+  constructor() {
+    super("La valoración no existe.");
+    this.name = "ReviewNotFoundError";
+  }
+}
+
+export class ForbiddenReviewError extends Error {
+  readonly code = "FORBIDDEN_REVIEW" as const;
+
+  constructor() {
+    super("No tienes permiso para eliminar esta valoración.");
+    this.name = "ForbiddenReviewError";
+  }
+}
+
+// Elimina una valoración (SPEC-110). Sin edición.
+// Solo su autor o ADMIN. Las puntuaciones caen en cascada y la media,
+// al ser dinámica, se actualiza sola.
+export async function deleteReview(id: string, actor: Actor): Promise<{ establishmentId: string }> {
+  const review = await prisma.accessibilityReview.findUnique({
+    where: { id },
+    select: { id: true, userId: true, establishmentId: true },
+  });
+  if (!review) {
+    throw new ReviewNotFoundError();
+  }
+  if (!canManageOwnerOrAdmin(actor, review.userId)) {
+    throw new ForbiddenReviewError();
+  }
+
+  await prisma.accessibilityReview.delete({ where: { id } });
+  return { establishmentId: review.establishmentId };
 }

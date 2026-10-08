@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { logoutAction } from "@/features/auth/actions/logout.action";
@@ -25,6 +26,7 @@ export function Topbar({ user }: TopbarProps) {
           <div>
             <p>{user.name}</p>
             <p>{user.role}</p>
+            {user.role === "ADMIN" && <Link href="/admin">Administración</Link>}
             <form action={logoutAction}>
               <Button type="submit" size="sm">
                 Cerrar sesión

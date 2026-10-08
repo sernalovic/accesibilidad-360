@@ -21,7 +21,7 @@ export interface DashboardEstablishment {
 }
 
 export interface DashboardReviewScore {
-  score: number;
+  score: number | null;
   criterionName: string;
 }
 
@@ -86,7 +86,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     ]);
 
   const establishments: EstablishmentWithDate[] = establishmentRows.map((row) => {
-    const allScores = row.reviews.flatMap((review) => review.scores.map((entry) => entry.score));
+    const allScores = row.reviews.flatMap((review) =>
+      review.scores.map((entry) => entry.score).filter((score): score is number => score !== null),
+    );
     return {
       id: row.id,
       name: row.name,
@@ -126,7 +128,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       establishmentId: row.establishment.id,
       establishmentName: row.establishment.name,
       userName: row.user.name,
-      averageScore: averageScoreOf(row.scores.map((entry) => entry.score)),
+      averageScore: averageScoreOf(
+        row.scores.map((entry) => entry.score).filter((score): score is number => score !== null),
+      ),
       scores: row.scores.map((entry) => ({
         score: entry.score,
         criterionName: entry.criterion.name,

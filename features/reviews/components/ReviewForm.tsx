@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { reviewSchema, type ReviewInput } from "../schemas/review.schema";
+import { reviewSchema, type ReviewFormInput, type ReviewInput } from "../schemas/review.schema";
 import { createReviewAction } from "../actions/create-review.action";
 import type { CriterionOption } from "../services/criterion.service";
 import { SCORE_VALUES, scoreLabel } from "../utils/score-labels";
@@ -33,7 +33,7 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<ReviewInput>({
+  } = useForm<ReviewFormInput, unknown, ReviewInput>({
     resolver: zodResolver(reviewSchema),
     defaultValues: {
       establishmentId,
@@ -58,7 +58,7 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
     });
   };
 
-  const onInvalid = (formErrors: FieldErrors<ReviewInput>) => {
+  const onInvalid = (formErrors: FieldErrors<ReviewFormInput>) => {
     const scoresErrors = formErrors.scores;
     if (!Array.isArray(scoresErrors)) {
       return;
@@ -117,6 +117,10 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
               </div>
             ))}
           </dl>
+          <p className="text-sm text-muted-foreground">
+            Los criterios marcados como «No aplicable» no intervienen en el cálculo de la valoración
+            media.
+          </p>
         </CardContent>
       </Card>
 

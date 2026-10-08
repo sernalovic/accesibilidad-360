@@ -3,8 +3,12 @@ import { prisma } from "@/lib/db/prisma";
 import {
   DuplicateReviewError,
   EstablishmentNotFoundError,
+  ForbiddenReviewError,
   IncompleteScoresError,
+  NotApplicableNotAllowedError,
+  ReviewNotFoundError,
   createReview,
+  deleteReview,
 } from "@/features/reviews/services/review.service";
 
 const txCreate = vi.fn();
@@ -13,7 +17,7 @@ const txCreateMany = vi.fn();
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     establishment: { findUnique: vi.fn() },
-    accessibilityReview: { findUnique: vi.fn() },
+    accessibilityReview: { findUnique: vi.fn(), delete: vi.fn() },
     criterion: { findMany: vi.fn() },
     $transaction: vi.fn((callback: unknown) =>
       (callback as (tx: unknown) => Promise<unknown>)({
@@ -45,7 +49,10 @@ const validData = {
 function mockReadyDatabase(): void {
   findEstablishment.mockResolvedValue({ id: "est-1" });
   findReview.mockResolvedValue(null);
-  findCriteria.mockResolvedValue([{ id: "crit-1" }, { id: "crit-2" }]);
+  findCriteria.mockResolvedValue([
+    { id: "crit-1", allowsNotApplicable: false },
+    { id: "crit-2", allowsNotApplicable: true },
+  ]);
   txCreate.mockResolvedValue({ id: "rev-1" });
   txCreateMany.mockResolvedValue({ count: 2 });
 }
@@ -98,5 +105,71 @@ describe("createReview (SPEC-040)", () => {
 
     await expect(createReview(incomplete, "user-1")).rejects.toBeInstanceOf(IncompleteScoresError);
     expect(transaction).not.toHaveBeenCalled();
+  });
+
+  it("persiste null en criterios que admiten «No aplicable»", async () => {
+    mockReadyDatabase();
+    const withNotApplicable = {
+      ...validData,
+      scores: [
+        { criterionId: "crit-1", score: 5 },
+        { criterionId: "crit-2", score: null },
+      ],
+    };
+
+    const result = await createReview(withNotApplicable, "user-1");
+
+    expect(result).toEqual({ id: "rev-1" });
+    expect(txCreateMany).toHaveBeenCalledWith({
+      data: [
+        { reviewId: "rev-1", criterionId: "crit-1", score: 5 },
+        { reviewId: "rev-1", criterionId: "crit-2", score: null },
+      ],
+    });
+  });
+
+  it("rechaza null en criterios que no lo admiten", async () => {
+    mockReadyDatabase();
+    const invalid = {
+      ...validData,
+      scores: [
+        { criterionId: "crit-1", score: null },
+        { criterionId: "crit-2", score: 4 },
+      ],
+    };
+
+    await expect(createReview(invalid, "user-1")).rejects.toBeInstanceOf(
+      NotApplicableNotAllowedError,
+    );
+    expect(transaction).not.toHaveBeenCalled();
+  });
+});
+
+describe("deleteReview (SPEC-110)", () => {
+  it("elimina como autor y como administrador", async () => {
+    const remove = vi.mocked(prisma.accessibilityReview.delete);
+    findReview.mockResolvedValue({ id: "rev-1", userId: "user-1", establishmentId: "est-1" });
+    remove.mockResolvedValue({ id: "rev-1" });
+
+    await expect(deleteReview("rev-1", { id: "user-1", role: "USER" })).resolves.toEqual({
+      establishmentId: "est-1",
+    });
+    expect(remove).toHaveBeenCalledWith({ where: { id: "rev-1" } });
+
+    await expect(deleteReview("rev-1", { id: "admin-1", role: "ADMIN" })).resolves.toBeDefined();
+  });
+
+  it("rechaza inexistente y sin permiso", async () => {
+    const remove = vi.mocked(prisma.accessibilityReview.delete);
+    findReview.mockResolvedValue(null);
+    await expect(deleteReview("x", { id: "user-1", role: "USER" })).rejects.toBeInstanceOf(
+      ReviewNotFoundError,
+    );
+
+    findReview.mockResolvedValue({ id: "rev-1", userId: "owner-1", establishmentId: "est-1" });
+    await expect(deleteReview("rev-1", { id: "other", role: "USER" })).rejects.toBeInstanceOf(
+      ForbiddenReviewError,
+    );
+    expect(remove).not.toHaveBeenCalled();
   });
 });

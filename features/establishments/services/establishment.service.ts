@@ -403,7 +403,7 @@ export async function getEstablishmentById(id: string): Promise<EstablishmentDet
 }
 
 interface ReviewScores {
-  scores: { score: number }[];
+  scores: { score: number | null }[];
 }
 
 // Media redondeada a un decimal sobre una lista de puntuaciones.
@@ -424,7 +424,9 @@ function summarizeScores(reviews: ReviewScores[]): {
   reviewCount: number;
   hasReviews: boolean;
 } {
-  const allScores = reviews.flatMap((review) => review.scores.map((entry) => entry.score));
+  const allScores = reviews.flatMap((review) =>
+    review.scores.map((entry) => entry.score).filter((score): score is number => score !== null),
+  );
   return {
     averageScore: averageScoreOf(allScores),
     reviewCount: reviews.length,
