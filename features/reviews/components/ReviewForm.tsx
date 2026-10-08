@@ -2,24 +2,27 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { reviewSchema, type ReviewInput } from "../schemas/review.schema";
 import { createReviewAction } from "../actions/create-review.action";
 import type { CriterionOption } from "../services/criterion.service";
 import { SCORE_VALUES, scoreLabel } from "../utils/score-labels";
+import { CriterionRatingCard } from "./CriterionRatingCard";
 
 interface ReviewFormProps {
   establishmentId: string;
   criteria: CriterionOption[];
 }
 
-// Formulario de valoración (Sprint UI-001: shadcn/ui en comentario;
-// los radios siguen siendo radios nativos, sin sliders).
-// Misma lógica y accesibilidad; solo cambia la presentación.
+// Formulario de valoración (Sprint UX-001).
+// Misma lógica y accesibilidad; reorganizado en Cards con grid
+// responsive. Ante un envío inválido desplaza y enfoca el primer
+// criterio pendiente con DOM nativo (sin librerías).
 export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -55,12 +58,27 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
     });
   };
 
+  const onInvalid = (formErrors: FieldErrors<ReviewInput>) => {
+    const scoresErrors = formErrors.scores;
+    if (!Array.isArray(scoresErrors)) {
+      return;
+    }
+    const pendingIndex = scoresErrors.findIndex((entry) => entry?.score);
+    const pendingId = pendingIndex === -1 ? undefined : criteria[pendingIndex]?.id;
+    if (!pendingId) {
+      return;
+    }
+    const target = document.getElementById(`criterion-${pendingId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
+    target?.querySelector<HTMLInputElement>('input[type="radio"]')?.focus({ preventScroll: true });
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, onInvalid)}
       noValidate
       aria-label="Formulario de valoración"
-      className="space-y-4"
+      className="space-y-6"
     >
       {formError && (
         <p role="alert" className="rounded-md border px-3 py-2 text-sm">
@@ -68,51 +86,58 @@ export function ReviewForm({ establishmentId, criteria }: ReviewFormProps) {
         </p>
       )}
 
-      <fieldset>
-        <legend>Tu valoración</legend>
-        <div className="space-y-2">
-          <Label htmlFor="review-comment">Comentario (opcional)</Label>
-          <Textarea
-            id="review-comment"
-            aria-invalid={errors.comment ? true : undefined}
-            {...register("comment")}
-          />
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Tu comentario</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="review-comment">Comentario (opcional)</Label>
+            <Textarea
+              id="review-comment"
+              aria-invalid={errors.comment ? true : undefined}
+              {...register("comment")}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-        <dl aria-label="Significado de las puntuaciones">
-          {SCORE_VALUES.map((value) => (
-            <div key={value}>
-              <dt>{value}</dt>
-              <dd>{scoreLabel(value)}</dd>
-            </div>
-          ))}
-        </dl>
+      <Card>
+        <CardHeader>
+          <CardTitle>Escala de puntuación</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <dl
+            aria-label="Significado de las puntuaciones"
+            className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+          >
+            {SCORE_VALUES.map((value) => (
+              <div key={value}>
+                <dt>{value}</dt>
+                <dd>{scoreLabel(value)}</dd>
+              </div>
+            ))}
+          </dl>
+        </CardContent>
+      </Card>
 
-        {criteria.map((criterion, index) => (
-          <fieldset key={criterion.id}>
-            <legend>{criterion.name}</legend>
-            {criterion.description && <p>{criterion.description}</p>}
-            <div role="radiogroup" aria-label={`Puntuación para ${criterion.name}`}>
-              {SCORE_VALUES.map((value) => (
-                <label key={value}>
-                  <input
-                    type="radio"
-                    value={value}
-                    aria-label={`${value} — ${scoreLabel(value)}`}
-                    {...register(`scores.${index}.score`, { valueAsNumber: true })}
-                  />
-                  <span aria-hidden="true">{value}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        ))}
-        {errors.scores && (
-          <p role="alert" className="text-sm text-destructive">
-            Debes puntuar todos los criterios.
-          </p>
-        )}
-      </fieldset>
+      {criteria.map((criterion, index) => (
+        <CriterionRatingCard
+          key={criterion.id}
+          criterion={criterion}
+          index={index}
+          register={register}
+          error={errors.scores?.[index]?.score?.message}
+        />
+      ))}
+      {errors.scores && (
+        <p
+          role="alert"
+          className="rounded-md border border-destructive/50 px-3 py-2 text-sm text-destructive"
+        >
+          Debes puntuar todos los criterios.
+        </p>
+      )}
 
       <Button type="submit" disabled={isPending} className="w-full">
         {isPending ? "Guardando…" : "Enviar valoración"}

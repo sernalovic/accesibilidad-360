@@ -31,4 +31,22 @@ describe("reviewSchema (SPEC-040)", () => {
   it("rechaza la lista de puntuaciones vacía", () => {
     expect(reviewSchema.safeParse({ ...validInput, scores: [] }).success).toBe(false);
   });
+
+  it("convierte las puntuaciones en string del DOM a número", () => {
+    const fromBrowser = {
+      ...validInput,
+      scores: [
+        { criterionId: "crit-1", score: "5" },
+        { criterionId: "crit-2", score: "4" },
+      ],
+    };
+    const result = reviewSchema.safeParse(fromBrowser);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.scores).toEqual([
+        { criterionId: "crit-1", score: 5 },
+        { criterionId: "crit-2", score: 4 },
+      ]);
+    }
+  });
 });

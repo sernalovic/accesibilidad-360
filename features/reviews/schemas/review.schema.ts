@@ -6,7 +6,10 @@ import { z } from "zod";
 // `userId` nunca forma parte del formulario: lo aporta la sesión.
 const criterionScoreSchema = z.object({
   criterionId: z.string().trim().min(1),
-  score: z
+  // coerce: el DOM siempre entrega strings (los radios no aplican
+  // valueAsNumber de RHF) y los clientes pueden enviar strings.
+  // undefined → NaN → lo rechaza .int().
+  score: z.coerce
     .number({ invalid_type_error: "Debes puntuar este criterio." })
     .int("La puntuación debe ser un número entero.")
     .min(0, "La puntuación mínima es 0.")
