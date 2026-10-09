@@ -28,19 +28,11 @@ export function Footer() {
                   Política de cookies
                 </Link>
               </li>
-              <li>
-                <a
-                  href="https://github.com/sernalovic/accesibilidad-360"
-                  className="hover:underline"
-                >
-                  Repositorio GitHub
-                </a>
-              </li>
             </ul>
           </nav>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          Proyecto desarrollado como Trabajo Fin de Máster.
+          Proyecto desarrollado como Trabajo Fin de Máster de Desarrollo con IA - Big School.
         </p>
       </Container>
     </footer>
