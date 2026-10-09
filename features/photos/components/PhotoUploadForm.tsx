@@ -9,19 +9,18 @@ import { initialUploadPhotoState } from "../actions/upload-photo.types";
 
 interface PhotoUploadFormProps {
   establishmentId: string;
-  disabled?: boolean;
 }
 
-// Formulario de subida (SPEC-050, 1.ª entrega).
-// Un único archivo; sin drag & drop ni previsualización.
-// Deshabilitado (con mensaje) cuando ya existe fotografía.
-export function PhotoUploadForm({ establishmentId, disabled = false }: PhotoUploadFormProps) {
+// Formulario de subida (SPEC-050 + SPEC-120).
+// Un único archivo por acción; sin drag & drop ni previsualización.
+// Siempre visible: la galería admite hasta 10 fotografías.
+export function PhotoUploadForm({ establishmentId }: PhotoUploadFormProps) {
   const [state, submit, isPending] = useActionState(uploadPhotoAction, initialUploadPhotoState);
 
   return (
     <form action={submit} aria-label="Formulario de fotografía">
       <input type="hidden" name="establishmentId" value={establishmentId} />
-      <fieldset disabled={disabled || isPending}>
+      <fieldset disabled={isPending}>
         <div className="space-y-2">
           <Label htmlFor="establishment-photo">Fotografía del establecimiento</Label>
           <Input
@@ -33,16 +32,10 @@ export function PhotoUploadForm({ establishmentId, disabled = false }: PhotoUplo
           />
           <p id="establishment-photo-help">JPG, PNG o WebP de hasta 5 MB.</p>
         </div>
-        <Button type="submit" disabled={disabled || isPending}>
+        <Button type="submit" disabled={isPending}>
           {isPending ? "Subiendo…" : "Subir fotografía"}
         </Button>
       </fieldset>
-      {disabled && (
-        <p>
-          Este establecimiento ya tiene una fotografía. La gestión de múltiples fotografías llegará
-          en una próxima fase.
-        </p>
-      )}
       {state.message && <p role={state.success ? "status" : "alert"}>{state.message}</p>}
     </form>
   );

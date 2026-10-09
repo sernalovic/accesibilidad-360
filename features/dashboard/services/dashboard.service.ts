@@ -64,7 +64,11 @@ export async function getDashboardData(): Promise<DashboardData> {
           category: { select: { name: true } },
           municipality: { select: { name: true } },
           province: { select: { name: true } },
-          photos: { select: { url: true }, orderBy: { createdAt: "asc" }, take: 1 },
+          photos: {
+            select: { url: true },
+            orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+            take: 1,
+          },
           reviews: { select: { scores: { select: { score: true } } } },
         },
       }),

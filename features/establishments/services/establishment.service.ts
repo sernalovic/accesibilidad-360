@@ -345,7 +345,7 @@ export async function listMappedEstablishments(): Promise<MappedEstablishment[]>
       province: { select: { name: true } },
       photos: {
         select: { url: true },
-        orderBy: { createdAt: "asc" },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
         take: 1,
       },
       createdBy: { select: { name: true } },

@@ -17,7 +17,7 @@ vi.mock("@/features/photos/services/photo-storage.service", () => ({
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     establishment: { findUnique: vi.fn() },
-    photo: { findFirst: vi.fn(), create: vi.fn() },
+    photo: { findFirst: vi.fn(), create: vi.fn(), count: vi.fn() },
   },
 }));
 
@@ -25,6 +25,7 @@ const authMock = vi.mocked(auth);
 const uploadMock = vi.mocked(uploadPhotoBuffer);
 const findEstablishment = vi.mocked(prisma.establishment.findUnique);
 const findPhoto = vi.mocked(prisma.photo.findFirst);
+const countPhotos = vi.mocked(prisma.photo.count);
 const create = vi.mocked(prisma.photo.create);
 
 const session = {
@@ -40,6 +41,7 @@ function formData(): FormData {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  countPhotos.mockResolvedValue(0);
 });
 
 describe("uploadPhotoAction (SPEC-050)", () => {

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth/auth";
 import { uploadPhotoSchema } from "../schemas/photo.schema";
 import {
   EstablishmentNotFoundError,
-  PhotoAlreadyExistsError,
+  PhotoLimitReachedError,
   PhotoTooSmallError,
   uploadEstablishmentPhoto,
 } from "../services/photo.service";
@@ -54,7 +54,7 @@ export async function uploadPhotoAction(
     console.error("[debug-upload] 9. excepción capturada", error);
     if (
       error instanceof EstablishmentNotFoundError ||
-      error instanceof PhotoAlreadyExistsError ||
+      error instanceof PhotoLimitReachedError ||
       error instanceof PhotoTooSmallError
     ) {
       return { success: false, message: error.message };

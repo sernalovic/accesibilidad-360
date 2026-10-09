@@ -6,6 +6,9 @@ import { deleteUploadedPhoto, uploadPhotoBuffer } from "./photo-storage.service"
 export const MIN_PHOTO_WIDTH = 800;
 export const MIN_PHOTO_HEIGHT = 600;
 
+// Máximo de fotografías por establecimiento (SPEC-120).
+export const MAX_PHOTOS_PER_ESTABLISHMENT = 10;
+
 export class EstablishmentNotFoundError extends Error {
   readonly code = "ESTABLISHMENT_NOT_FOUND" as const;
 
@@ -33,6 +36,15 @@ export class PhotoTooSmallError extends Error {
   }
 }
 
+export class PhotoLimitReachedError extends Error {
+  readonly code = "PHOTO_LIMIT_REACHED" as const;
+
+  constructor() {
+    super("Has alcanzado el máximo de 10 fotografías por establecimiento.");
+    this.name = "PhotoLimitReachedError";
+  }
+}
+
 export interface StoredPhoto {
   id: string;
   url: string;
@@ -42,70 +54,44 @@ export interface EstablishmentPhotoItem {
   id: string;
   url: string;
   userId: string;
+  isPrimary: boolean;
 }
 
-// Sube la fotografía de un establecimiento (SPEC-050, 1.ª entrega).
-// `userId` procede siempre de la sesión. La regla "una por
-// establecimiento" vive aquí para no bloquear la futura galería.
+// Sube una fotografía a la galería (SPEC-050 + SPEC-120).
+// `userId` procede siempre de la sesión. La primera es principal;
+// las siguientes, secundarias. Máximo 10 por establecimiento.
 export async function uploadEstablishmentPhoto(
   establishmentId: string,
   userId: string,
   file: File,
 ): Promise<StoredPhoto> {
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.1. inicio del servicio", {
-    establishmentId,
-    userId,
-    fileName: file.name,
-    fileType: file.type,
-    fileSize: file.size,
-  });
   const establishment = await prisma.establishment.findUnique({
     where: { id: establishmentId },
     select: { id: true },
   });
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.2. establecimiento", establishment ? "encontrado" : "NO_EXISTE");
   if (!establishment) {
     throw new EstablishmentNotFoundError();
   }
 
-  const existing = await prisma.photo.findFirst({
-    where: { establishmentId },
-    select: { id: true },
-  });
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.3. duplicado", existing ? "EXISTE" : "no");
-  if (existing) {
-    throw new PhotoAlreadyExistsError();
+  const photoCount = await prisma.photo.count({ where: { establishmentId } });
+  if (photoCount >= MAX_PHOTOS_PER_ESTABLISHMENT) {
+    throw new PhotoLimitReachedError();
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.4. buffer creado", { bytes: buffer.length });
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.5. invocando subida a Cloudinary");
   const uploaded = await uploadPhotoBuffer(buffer);
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 5.6. dimensiones", {
-    width: uploaded.width,
-    height: uploaded.height,
-    publicId: uploaded.publicId,
-  });
   if (uploaded.width < MIN_PHOTO_WIDTH || uploaded.height < MIN_PHOTO_HEIGHT) {
     await deleteUploadedPhoto(uploaded.publicId);
     throw new PhotoTooSmallError();
   }
 
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 8. escritura en Prisma");
   const photo = await prisma.photo.create({
     data: {
       establishmentId,
       userId,
       url: uploaded.url,
       publicId: uploaded.publicId,
-      isPrimary: true,
+      isPrimary: photoCount === 0,
     },
     select: { id: true, url: true },
   });
@@ -114,15 +100,15 @@ export async function uploadEstablishmentPhoto(
   return photo;
 }
 
-// Lista las fotografías para la ficha (SPEC-050).
-// Hoy at most una; preparado para la futura galería.
+// Lista las fotografías para la ficha y la galería (SPEC-050 + SPEC-120).
+// Orden estable documentado: principal primero, resto por antigüedad.
 export async function listPhotosByEstablishment(
   establishmentId: string,
 ): Promise<EstablishmentPhotoItem[]> {
   return prisma.photo.findMany({
     where: { establishmentId },
-    orderBy: { createdAt: "asc" },
-    select: { id: true, url: true, userId: true },
+    orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+    select: { id: true, url: true, userId: true, isPrimary: true },
   });
 }
 
@@ -144,13 +130,14 @@ export class ForbiddenPhotoError extends Error {
   }
 }
 
-// Elimina una fotografía (SPEC-110).
+// Elimina una fotografía (SPEC-110 + SPEC-120).
 // Solo su autor o ADMIN. Primero Cloudinary y después la BD:
 // si Cloudinary falla, el registro se conserva (reintentable).
+// Si era la principal y quedan más, la más antigua promociona.
 export async function deletePhoto(id: string, actor: Actor): Promise<{ establishmentId: string }> {
   const photo = await prisma.photo.findUnique({
     where: { id },
-    select: { id: true, userId: true, publicId: true, establishmentId: true },
+    select: { id: true, userId: true, publicId: true, establishmentId: true, isPrimary: true },
   });
   if (!photo) {
     throw new PhotoNotFoundError();
@@ -161,5 +148,43 @@ export async function deletePhoto(id: string, actor: Actor): Promise<{ establish
 
   await deleteUploadedPhoto(photo.publicId);
   await prisma.photo.delete({ where: { id } });
+
+  if (photo.isPrimary) {
+    const next = await prisma.photo.findFirst({
+      where: { establishmentId: photo.establishmentId },
+      orderBy: { createdAt: "asc" },
+      select: { id: true },
+    });
+    if (next) {
+      await prisma.photo.update({ where: { id: next.id }, data: { isPrimary: true } });
+    }
+  }
+  return { establishmentId: photo.establishmentId };
+}
+
+// Establece la fotografía principal (SPEC-120).
+// Solo su autor o ADMIN. Desmarca la actual en la misma transacción.
+export async function setPrimaryPhoto(
+  id: string,
+  actor: Actor,
+): Promise<{ establishmentId: string }> {
+  const photo = await prisma.photo.findUnique({
+    where: { id },
+    select: { id: true, userId: true, establishmentId: true },
+  });
+  if (!photo) {
+    throw new PhotoNotFoundError();
+  }
+  if (!canManageOwnerOrAdmin(actor, photo.userId)) {
+    throw new ForbiddenPhotoError();
+  }
+
+  await prisma.$transaction([
+    prisma.photo.updateMany({
+      where: { establishmentId: photo.establishmentId },
+      data: { isPrimary: false },
+    }),
+    prisma.photo.update({ where: { id }, data: { isPrimary: true } }),
+  ]);
   return { establishmentId: photo.establishmentId };
 }

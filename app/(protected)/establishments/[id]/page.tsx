@@ -14,8 +14,7 @@ import { listCriteria } from "@/features/reviews/services/criterion.service";
 import { listReviewsByEstablishment } from "@/features/reviews/services/review.service";
 import { ReviewForm } from "@/features/reviews/components/ReviewForm";
 import { ReviewList } from "@/features/reviews/components/ReviewList";
-import { EstablishmentPhoto } from "@/features/photos/components/EstablishmentPhoto";
-import { DeletePhotoButton } from "@/features/photos/components/DeletePhotoButton";
+import { EstablishmentGallery } from "@/features/photos/components/EstablishmentGallery";
 import { PhotoUploadForm } from "@/features/photos/components/PhotoUploadForm";
 import { DeleteEstablishmentButton } from "@/features/establishments/components/DeleteEstablishmentButton";
 import { EstablishmentMapLoader } from "@/features/establishments/components/EstablishmentMapLoader";
@@ -47,14 +46,14 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
     notFound();
   }
   const summary = formatScoreSummary(establishment);
-  const [primaryPhoto] = photos;
   const user = session?.user;
+  const canDeletePhotoIds = user
+    ? photos
+        .filter((photo) => canManageOwnerOrAdmin({ id: user.id, role: user.role }, photo.userId))
+        .map((photo) => photo.id)
+    : [];
   const canManage =
     !!user && canManageEstablishment({ id: user.id, role: user.role }, establishment.createdById);
-  const canDeletePhoto =
-    !!user &&
-    !!primaryPhoto &&
-    canManageOwnerOrAdmin({ id: user.id, role: user.role }, primaryPhoto.userId);
   const canDeleteIds = user
     ? reviews
         .filter((review) => canManageOwnerOrAdmin({ id: user.id, role: user.role }, review.userId))
@@ -92,18 +91,22 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
-            {primaryPhoto ? (
-              <>
-                <EstablishmentPhoto url={primaryPhoto.url} establishmentName={establishment.name} />
-                {canDeletePhoto && <DeletePhotoButton id={primaryPhoto.id} />}
-              </>
-            ) : (
-              <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-muted text-muted-foreground">
-                <ImageIcon className="size-8" aria-hidden="true" />
-                <p>Sin fotografía todavía</p>
-              </div>
-            )}
-            <PhotoUploadForm establishmentId={establishment.id} disabled={photos.length > 0} />
+            <section aria-labelledby="gallery-heading" className="space-y-4">
+              <h2 id="gallery-heading">Fotografías</h2>
+              {photos.length === 0 ? (
+                <div className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-xl bg-muted text-muted-foreground">
+                  <ImageIcon className="size-8" aria-hidden="true" />
+                  <p>Sin fotografías todavía</p>
+                </div>
+              ) : (
+                <EstablishmentGallery
+                  photos={photos}
+                  establishmentName={establishment.name}
+                  canDeleteIds={canDeletePhotoIds}
+                />
+              )}
+              <PhotoUploadForm establishmentId={establishment.id} />
+            </section>
           </div>
 
           <Card>
