@@ -14,11 +14,8 @@
 - [ ] 030-establishment-management
 - [ ] 040-accessibility-reviews
 - [ ] 050-photo-management
-- [ ] 060-interactive-map
-- [ ] 070-search-and-filtering
-- [ ] 080-administration-dashboard
-- [ ] 090-system-administration
-
-## Calidad
-
-- [ ] 100-quality-assurance
+- [ ] 060-geocoding
+- [ ] 070-search-and-filters
+- [ ] 080-edit-and-delete
+- [ ] 090-global-map
+- [ ] 100-dashboard

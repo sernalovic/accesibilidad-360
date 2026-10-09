@@ -19,7 +19,15 @@ Implementado y verificado (build + lint + tests en verde):
 - **Administración:** panel mínimo con gestión de categorías. Ruta `/admin` (solo ADMIN).
 - **UI:** landing pública renovada (hero explicativo, beneficios, cómo funciona, criterios oficiales, llamada final), componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
 
-Pendiente: especificaciones `020/060/070/080/090/100` aún sin redactar en `.specs/`; evoluciones futuras según producto (favoritos, gamificación, API pública, multidioma, app móvil).
+La aplicación se considera funcionalmente completa para el alcance del TFM.
+
+Posibles evoluciones futuras (fuera del alcance del TFM):
+
+- Favoritos.
+- Gamificación.
+- API pública.
+- Internacionalización.
+- Aplicación móvil.
 
 ## Tecnologías
 

@@ -96,12 +96,6 @@ export default function HomePage() {
           </div>
         </Container>
       </main>
-
-      <footer className="border-t">
-        <Container>
-          <p>TFM Desarrollo con IA · Big School· Next.js · Prisma · PostgreSQL</p>
-        </Container>
-      </footer>
     </div>
   );
 }
