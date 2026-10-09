@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
+import { BackToAppLink } from "@/components/navigation/BackToAppLink";
+import { auth } from "@/lib/auth/auth";
 
 export const metadata: Metadata = {
   title: "Política de cookies | Accesibilidad 360",
@@ -7,11 +9,15 @@ export const metadata: Metadata = {
 };
 
 // Política de cookies (SPEC-135). Contenido estático, sin lógica.
-export default function CookiesPage() {
+export default async function CookiesPage() {
+  const session = await auth();
+  const fallbackHref = session?.user ? "/dashboard" : "/";
+
   return (
     <main id="contenido">
       <Container>
         <div className="max-w-2xl space-y-6">
+          <BackToAppLink fallbackHref={fallbackHref} />
           <h1 className="text-3xl font-bold">Política de cookies</h1>
 
           <section className="space-y-2">

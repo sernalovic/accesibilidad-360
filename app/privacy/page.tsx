@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
+import { BackToAppLink } from "@/components/navigation/BackToAppLink";
+import { auth } from "@/lib/auth/auth";
 
 export const metadata: Metadata = {
   title: "Política de privacidad | Accesibilidad 360",
@@ -8,11 +10,15 @@ export const metadata: Metadata = {
 
 // Política de privacidad (SPEC-135). Describe únicamente lo que la
 // aplicación hace realmente. Contenido estático, sin lógica.
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const session = await auth();
+  const fallbackHref = session?.user ? "/dashboard" : "/";
+
   return (
     <main id="contenido">
       <Container>
         <div className="max-w-2xl space-y-6">
+          <BackToAppLink fallbackHref={fallbackHref} />
           <h1 className="text-3xl font-bold">Política de privacidad</h1>
 
           <section className="space-y-2">

@@ -25,6 +25,14 @@ test("el pie global enlaza la información legal", async ({ page }) => {
   );
 });
 
+test("las páginas legales ofrecen volver a la aplicación", async ({ page }) => {
+  await page.goto("/legal");
+  await expect(page.getByRole("link", { name: "Volver a la aplicación" })).toHaveAttribute(
+    "href",
+    "/",
+  );
+});
+
 test("la página legal no presenta violaciones críticas de accesibilidad", async ({ page }) => {
   await page.goto("/legal");
   const results = await new AxeBuilder({ page }).analyze();
