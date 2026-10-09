@@ -1,10 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatMediumDate } from "@/lib/utils";
 import type { ReviewWithScores } from "../services/review.service";
 import { scoreLabel } from "../utils/score-labels";
 import { DeleteReviewButton } from "./DeleteReviewButton";
-
-const dateFormatter = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" });
 
 // Tarjeta de valoración (rediseño de ficha, solo presentación).
 // Autor y fecha destacados; comentario y puntuaciones con etiquetas.
@@ -20,7 +19,7 @@ export function ReviewCard({
     <Card>
       <CardHeader>
         <CardTitle>
-          {review.user.name ?? "—"} · {dateFormatter.format(review.createdAt)}
+          {review.user.name ?? "—"} · {formatMediumDate(review.createdAt)}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

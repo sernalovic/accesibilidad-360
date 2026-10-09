@@ -46,11 +46,14 @@ export function LoginForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="login-email">Correo electrónico</Label>
+        <Label htmlFor="login-email">
+          Correo electrónico <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="login-email"
           type="email"
           autoComplete="email"
+          aria-required="true"
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "login-email-error" : undefined}
           {...register("email")}
@@ -63,11 +66,14 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="login-password">Contraseña</Label>
+        <Label htmlFor="login-password">
+          Contraseña <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="login-password"
           type="password"
           autoComplete="current-password"
+          aria-required="true"
           aria-invalid={errors.password ? true : undefined}
           aria-describedby={errors.password ? "login-password-error" : undefined}
           {...register("password")}

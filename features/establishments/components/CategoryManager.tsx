@@ -74,11 +74,14 @@ export function CategoryManager({ initialCategories }: { initialCategories: Cate
 
       <form onSubmit={onCreate} aria-label="Crear categoría" className="flex gap-2">
         <div className="flex-1 space-y-2">
-          <Label htmlFor="category-name">Nueva categoría</Label>
+          <Label htmlFor="category-name">
+            Nueva categoría <span aria-hidden="true">*</span>
+          </Label>
           <Input
             id="category-name"
             type="text"
             autoComplete="off"
+            aria-required="true"
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
           />

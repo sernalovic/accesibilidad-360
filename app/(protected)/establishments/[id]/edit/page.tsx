@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { Container } from "@/components/layout/Container";
@@ -40,9 +40,9 @@ export default async function EditEstablishmentPage({ params }: EditEstablishmen
   }
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Editar establecimiento</h1>
+        <h1 className="text-3xl font-bold">Editar establecimiento</h1>
         <EstablishmentForm
           mode="edit"
           establishmentId={establishment.id}

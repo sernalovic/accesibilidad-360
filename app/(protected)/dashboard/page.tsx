@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2, Camera, Star, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
@@ -33,9 +33,9 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Panel principal</h1>
+        <h1 className="text-3xl font-bold">Panel principal</h1>
         <p>Bienvenido, {name}.</p>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -80,6 +80,7 @@ export default async function DashboardPage() {
                     <Link
                       href={`/establishments/${establishment.id}`}
                       className="min-w-0 flex-1 truncate"
+                      title={establishment.name}
                     >
                       {establishment.name}
                     </Link>

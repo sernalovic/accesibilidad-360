@@ -60,11 +60,14 @@ export function RegisterForm() {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="register-name">Nombre</Label>
+        <Label htmlFor="register-name">
+          Nombre <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="register-name"
           type="text"
           autoComplete="name"
+          aria-required="true"
           aria-invalid={errors.name ? true : undefined}
           aria-describedby={errors.name ? "register-name-error" : undefined}
           {...register("name")}
@@ -77,11 +80,14 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="register-email">Correo electrónico</Label>
+        <Label htmlFor="register-email">
+          Correo electrónico <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="register-email"
           type="email"
           autoComplete="email"
+          aria-required="true"
           aria-invalid={errors.email ? true : undefined}
           aria-describedby={errors.email ? "register-email-error" : undefined}
           {...register("email")}
@@ -94,11 +100,14 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="register-password">Contraseña</Label>
+        <Label htmlFor="register-password">
+          Contraseña <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="register-password"
           type="password"
           autoComplete="new-password"
+          aria-required="true"
           aria-invalid={errors.password ? true : undefined}
           aria-describedby={errors.password ? "register-password-error" : undefined}
           {...register("password")}
@@ -111,11 +120,14 @@ export function RegisterForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="register-confirm">Confirmar contraseña</Label>
+        <Label htmlFor="register-confirm">
+          Confirmar contraseña <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="register-confirm"
           type="password"
           autoComplete="new-password"
+          aria-required="true"
           aria-invalid={errors.confirmPassword ? true : undefined}
           aria-describedby={errors.confirmPassword ? "register-confirm-error" : undefined}
           {...register("confirmPassword")}

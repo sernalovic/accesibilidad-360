@@ -95,8 +95,6 @@ export async function uploadEstablishmentPhoto(
     },
     select: { id: true, url: true },
   });
-  // TEMP-DEBUG (retirar tras verificar en Vercel).
-  console.log("[debug-upload] 8. foto persistida", { id: photo.id });
   return photo;
 }
 

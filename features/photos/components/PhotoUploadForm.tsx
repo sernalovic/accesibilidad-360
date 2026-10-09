@@ -22,12 +22,15 @@ export function PhotoUploadForm({ establishmentId }: PhotoUploadFormProps) {
       <input type="hidden" name="establishmentId" value={establishmentId} />
       <fieldset disabled={isPending}>
         <div className="space-y-2">
-          <Label htmlFor="establishment-photo">Fotografía del establecimiento</Label>
+          <Label htmlFor="establishment-photo">
+            Fotografía del establecimiento <span aria-hidden="true">*</span>
+          </Label>
           <Input
             id="establishment-photo"
             name="photo"
             type="file"
             accept="image/jpeg,image/png,image/webp"
+            aria-required="true"
             aria-describedby="establishment-photo-help"
           />
           <p id="establishment-photo-help">JPG, PNG o WebP de hasta 5 MB.</p>

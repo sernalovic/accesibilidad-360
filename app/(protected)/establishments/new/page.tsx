@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { EstablishmentForm } from "@/features/establishments/components/EstablishmentForm";
 import { listCategories } from "@/features/establishments/services/category.service";
 import { listMunicipalities, listProvinces } from "@/features/establishments/services/geo.service";
@@ -19,9 +19,9 @@ export default async function NewEstablishmentPage() {
   ]);
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Nuevo establecimiento</h1>
+        <h1 className="text-3xl font-bold">Nuevo establecimiento</h1>
         <EstablishmentForm
           categories={categories}
           provinces={provinces}

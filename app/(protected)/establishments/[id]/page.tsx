@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { auth } from "@/lib/auth/auth";
 import { Container } from "@/components/layout/Container";
+import { formatMediumDate } from "@/lib/utils";
 import { formatScoreSummary } from "@/features/establishments/utils/score-format";
 import { getEstablishmentById } from "@/features/establishments/services/establishment.service";
 import { listCriteria } from "@/features/reviews/services/criterion.service";
@@ -61,7 +62,7 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
     : [];
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
         <header className="space-y-3">
           <Badge>{establishment.category.name}</Badge>
@@ -134,9 +135,7 @@ export default async function EstablishmentDetailPage({ params }: EstablishmentD
                   <div>
                     <dt className="font-medium">Fecha de creación</dt>
                     <dd className="text-muted-foreground">
-                      {new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" }).format(
-                        establishment.createdAt,
-                      )}
+                      {formatMediumDate(establishment.createdAt)}
                     </dd>
                   </div>
                 </div>

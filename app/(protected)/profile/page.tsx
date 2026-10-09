@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Perfil | Accesibilidad 360",
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 // de usuarios. Sin lógica ni datos.
 export default function ProfilePage() {
   return (
-    <main>
-      <h1>Perfil</h1>
+    <main id="contenido">
+      <h1 className="text-3xl font-bold">Perfil</h1>
       <p>Disponible en la siguiente fase.</p>
     </main>
   );

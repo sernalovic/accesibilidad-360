@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth/auth";
 import { isAdmin } from "@/lib/permissions";
@@ -23,9 +23,9 @@ export default async function AdminPage() {
   const categories = await listCategoriesWithUsage();
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Administración</h1>
+        <h1 className="text-3xl font-bold">Administración</h1>
         <section aria-labelledby="categories-heading">
           <h2 id="categories-heading">Categorías</h2>
           <CategoryManager initialCategories={categories} />

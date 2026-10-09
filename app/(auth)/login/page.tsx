@@ -20,7 +20,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const justRegistered = registered === "true";
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-12">
+    <main id="contenido" className="mx-auto w-full max-w-md px-4 py-12">
       <Card>
         <CardHeader>
           <h1 className="text-2xl font-semibold">Iniciar sesión</h1>

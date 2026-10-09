@@ -14,7 +14,15 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={cn("font-sans", geist.variable)}>
-      <body>{children}</body>
+      <body>
+        <a
+          href="#contenido"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-background focus:p-2"
+        >
+          Saltar al contenido
+        </a>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Container } from "@/components/layout/Container";
 import { EstablishmentsMapLoader } from "@/features/establishments/components/EstablishmentsMapLoader";
 import { listMappedEstablishments } from "@/features/establishments/services/establishment.service";
@@ -14,9 +14,9 @@ export default async function MapPage() {
   const establishments = await listMappedEstablishments();
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Mapa de establecimientos</h1>
+        <h1 className="text-3xl font-bold">Mapa de establecimientos</h1>
         {establishments.length === 0 ? (
           <p>Todavía no hay establecimientos con ubicación en el mapa.</p>
         ) : (

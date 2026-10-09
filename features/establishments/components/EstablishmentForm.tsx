@@ -104,11 +104,14 @@ export function EstablishmentForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-name">Nombre</Label>
+        <Label htmlFor="establishment-name">
+          Nombre <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="establishment-name"
           type="text"
           autoComplete="off"
+          aria-required="true"
           aria-invalid={errors.name ? true : undefined}
           aria-describedby={errors.name ? "establishment-name-error" : undefined}
           {...register("name")}
@@ -121,9 +124,12 @@ export function EstablishmentForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-category">Categoría</Label>
+        <Label htmlFor="establishment-category">
+          Categoría <span aria-hidden="true">*</span>
+        </Label>
         <select
           id="establishment-category"
+          aria-required="true"
           aria-invalid={errors.categoryId ? true : undefined}
           aria-describedby={errors.categoryId ? "establishment-category-error" : undefined}
           className="w-full rounded-md border px-3 py-2 text-sm"
@@ -144,11 +150,14 @@ export function EstablishmentForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-address">Dirección</Label>
+        <Label htmlFor="establishment-address">
+          Dirección <span aria-hidden="true">*</span>
+        </Label>
         <Input
           id="establishment-address"
           type="text"
           autoComplete="street-address"
+          aria-required="true"
           aria-invalid={errors.address ? true : undefined}
           aria-describedby={errors.address ? "establishment-address-error" : undefined}
           {...register("address")}
@@ -161,9 +170,12 @@ export function EstablishmentForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-province">Provincia</Label>
+        <Label htmlFor="establishment-province">
+          Provincia <span aria-hidden="true">*</span>
+        </Label>
         <select
           id="establishment-province"
+          aria-required="true"
           aria-invalid={errors.provinceId ? true : undefined}
           aria-describedby={errors.provinceId ? "establishment-province-error" : undefined}
           className="w-full rounded-md border px-3 py-2 text-sm"
@@ -188,9 +200,12 @@ export function EstablishmentForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="establishment-municipality">Municipio</Label>
+        <Label htmlFor="establishment-municipality">
+          Municipio <span aria-hidden="true">*</span>
+        </Label>
         <select
           id="establishment-municipality"
+          aria-required="true"
           disabled={!selectedProvinceId}
           aria-invalid={errors.municipalityId ? true : undefined}
           aria-describedby={errors.municipalityId ? "establishment-municipality-error" : undefined}

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { EstablishmentCard } from "@/features/establishments/components/EstablishmentCard";
@@ -60,9 +60,9 @@ export default async function EstablishmentsPage({ searchParams }: Establishment
   ]);
 
   return (
-    <main>
+    <main id="contenido">
       <Container>
-        <h1>Establecimientos</h1>
+        <h1 className="text-3xl font-bold">Establecimientos</h1>
         <Link href="/establishments/new" className={buttonVariants()}>
           Nueva ficha
         </Link>

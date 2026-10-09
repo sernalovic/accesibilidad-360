@@ -31,6 +31,7 @@ export function CriterionRatingCard({
           <div
             role="radiogroup"
             aria-label={`Puntuación para ${criterion.name}`}
+            aria-required="true"
             className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
           >
             {SCORE_VALUES.map((value) => (
