@@ -67,8 +67,8 @@ describe("getDashboardData (SPEC-100)", () => {
     const data = await getDashboardData();
 
     expect(data.stats).toEqual({ establishments: 6, users: 3, reviews: 4, photos: 2 });
-    expect(data.latest.map((item) => item.name)).toEqual(["F", "E", "D", "C", "B"]);
-    expect(data.topRated.map((item) => item.name)).toEqual(["F", "A", "E", "D", "C"]);
+    expect(data.latest.map((item) => item.name)).toEqual(["F", "E", "D", "C", "B", "A"]);
+    expect(data.topRated.map((item) => item.name)).toEqual(["F", "A", "E", "D", "C", "B"]);
     expect(data.latestReviews).toEqual([
       expect.objectContaining({
         id: "rev-1",

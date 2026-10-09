@@ -123,8 +123,11 @@ export async function getDashboardData(): Promise<DashboardData> {
       reviews: reviewCount,
       photos: photoCount,
     },
-    latest: establishments.slice(0, 5).map(toCard),
-    topRated: byRating.slice(0, 5).map(toCard),
+    // Microfase UX: el bloque protagonista muestra hasta 6 establecimientos.
+    // Se mantiene latestReviews en el DTO para futuras evoluciones,
+    // aunque la página no lo renderice de momento.
+    latest: establishments.slice(0, 6).map(toCard),
+    topRated: byRating.slice(0, 6).map(toCard),
     latestReviews: reviewRows.map((row) => ({
       id: row.id,
       comment: row.comment,

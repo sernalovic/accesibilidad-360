@@ -13,13 +13,13 @@ export function DashboardStatCard({ label, value, icon: Icon }: DashboardStatCar
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="size-5" aria-hidden="true" />
+        <CardTitle className="flex items-center gap-2 text-sm font-medium">
+          <Icon className="size-6" aria-hidden="true" />
           {label}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-5xl font-bold">{value}</p>
+        <p className="text-6xl font-bold tracking-tight">{value}</p>
       </CardContent>
     </Card>
   );
