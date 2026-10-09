@@ -17,7 +17,7 @@ Implementado y verificado (build + lint + tests en verde):
 - **Búsqueda y filtros:** texto, categoría, provincia, municipio y orden (recientes, nombre, mejor valorados) vía URL en `/establishments`.
 - **Dashboard:** estadísticas, últimos establecimientos, mejor valorados y accesos rápidos. Ruta `/dashboard`.
 - **Administración:** panel mínimo con gestión de categorías. Ruta `/admin` (solo ADMIN).
-- **UI:** landing pública, componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
+- **UI:** landing pública renovada (hero explicativo, beneficios, cómo funciona, criterios oficiales, llamada final), componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
 
 Pendiente: especificaciones `020/060/070/080/090/100` aún sin redactar en `.specs/`; evoluciones futuras según producto (favoritos, gamificación, API pública, multidioma, app móvil).
 
@@ -29,7 +29,7 @@ Pendiente: especificaciones `020/060/070/080/090/100` aún sin redactar en `.spe
 - Auth.js v5 (Credentials, sesiones JWT) + bcrypt
 - Zod + React Hook Form
 - Cloudinary (fotografías) + Leaflet + React Leaflet (mapa, Nominatim para geocodificar)
-- Vitest + Testing Library + Playwright + axe-core (189 tests automatizados)
+- Vitest + Testing Library + Playwright + axe-core (189 tests unitarios/integración + 3 e2e)
 - ESLint + Prettier + Husky + lint-staged
 
 ## Requisitos
@@ -66,7 +66,7 @@ npm run lint      # análisis estático
 ```text
 app/                  # rutas: (public)/, (auth)/, (protected)/, api/auth/
 components/           # ui/ (shadcn), layout/ (Topbar, MainNav, Container),
-                      #   stats/ (StatCard compartida)
+                      #   stats/ (StatCard compartida), landing/ (presentación)
 features/             # auth/, dashboard/, establishments/, photos/, reviews/,
                       #   profile/ (schemas, services, actions, components,
                       #   tests por módulo)

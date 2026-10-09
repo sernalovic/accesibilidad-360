@@ -1,30 +1,42 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Camera, MapPin, Search } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Container } from "@/components/layout/Container";
+import { BenefitCard } from "@/components/landing/BenefitCard";
+import { FinalCta } from "@/components/landing/FinalCta";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { InfoCriteria } from "@/components/landing/InfoCriteria";
 
 export const metadata: Metadata = {
   title: "Accesibilidad 360",
-  description: "Consulta y comparte información sobre la accesibilidad de establecimientos.",
+  description:
+    "Conoce la accesibilidad real de los establecimientos antes de desplazarte, con información compartida por la comunidad.",
 };
 
-const highlights = [
+const benefits = [
   {
-    title: "Valoraciones colaborativas",
-    description: "La comunidad valora la accesibilidad real de cada establecimiento.",
+    icon: Search,
+    title: "Consulta información real de la comunidad",
+    description:
+      "Fichas con valoraciones, puntuaciones y datos útiles aportados por personas que ya han visitado el establecimiento.",
   },
   {
-    title: "Información de accesibilidad",
-    description: "Consulta fichas con datos útiles antes de desplazarte.",
+    icon: Camera,
+    title: "Comparte tu experiencia",
+    description:
+      "Valora la accesibilidad, sube fotografías y deja comentarios para que otras personas sepan qué se van a encontrar.",
   },
   {
-    title: "Mapa colaborativo",
-    description: "Próximamente: localiza establecimientos accesibles en el mapa.",
+    icon: MapPin,
+    title: "Explora el mapa colaborativo",
+    description:
+      "Localiza establecimientos en el mapa y consulta su accesibilidad antes de decidir tu desplazamiento.",
   },
-];
+] as const;
 
-// Landing pública (Sprint UI-001). Solo presentación.
+// Landing pública. Solo presentación: sin servicios, sin consultas,
+// sin cambios de autenticación ni permisos.
 export default function HomePage() {
   return (
     <div>
@@ -46,31 +58,42 @@ export default function HomePage() {
 
       <main id="contenido">
         <Container>
-          <h1 className="text-4xl font-bold">Accesibilidad 360</h1>
-          <p className="mt-4 max-w-2xl text-lg">
-            Consulta y comparte información sobre la accesibilidad de establecimientos.
-          </p>
-          <div className="mt-6 flex gap-2">
-            <Link href="/login" className={buttonVariants()}>
-              Iniciar sesión
-            </Link>
-            <Link href="/register" className={buttonVariants({ variant: "outline" })}>
-              Crear cuenta
-            </Link>
-          </div>
+          <div className="space-y-12">
+            <div>
+              <h1 className="text-4xl font-bold">Accesibilidad 360</h1>
+              <p className="mt-4 max-w-2xl text-lg">
+                Antes de desplazarte, conviene saber si un establecimiento es realmente accesible:
+                si podrás entrar, moverte y usar sus instalaciones. Accesibilidad 360 recoge esa
+                información de forma colaborativa, con valoraciones, fotografías y experiencias
+                compartidas por la comunidad.
+              </p>
+              <div className="mt-6 flex gap-2">
+                <Link href="/login" className={buttonVariants()}>
+                  Iniciar sesión
+                </Link>
+                <Link href="/register" className={buttonVariants({ variant: "outline" })}>
+                  Crear cuenta
+                </Link>
+              </div>
+            </div>
 
-          <section aria-label="Características" className="mt-12 grid gap-4 md:grid-cols-3">
-            {highlights.map((highlight) => (
-              <Card key={highlight.title}>
-                <CardHeader>
-                  <CardTitle>{highlight.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription>{highlight.description}</CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </section>
+            <section aria-label="Beneficios" className="grid gap-4 md:grid-cols-3">
+              {benefits.map((benefit) => (
+                <BenefitCard
+                  key={benefit.title}
+                  icon={benefit.icon}
+                  title={benefit.title}
+                  description={benefit.description}
+                />
+              ))}
+            </section>
+
+            <HowItWorks />
+
+            <InfoCriteria />
+
+            <FinalCta />
+          </div>
         </Container>
       </main>
 
