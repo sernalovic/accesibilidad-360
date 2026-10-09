@@ -91,9 +91,9 @@ export default async function EstablishmentsPage({ searchParams }: Establishment
             </Link>
           </div>
         ) : (
-          <ul>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {establishments.map((establishment) => (
-              <li key={establishment.id}>
+              <li key={establishment.id} className="h-full">
                 <EstablishmentCard establishment={establishment} />
               </li>
             ))}

@@ -1,58 +1,63 @@
+import Image from "next/image";
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Star } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatScoreSummary } from "../utils/score-format";
+import { formatDecimalScore, formatScoreSummary } from "../utils/score-format";
 import type { EstablishmentListItem } from "../services/establishment.service";
 
-const dateFormatter = new Intl.DateTimeFormat("es-ES", { dateStyle: "medium" });
-
-// Tarjeta de establecimiento (SPEC-030, 2.ª entrega).
-// Toda la tarjeta es clicable mediante un enlace expansible con un único
-// punto de tabulación; el "Ver ficha" visible es decorativo para no
-// anidar interactivos. Sin acciones de editar ni eliminar.
+// Tarjeta de establecimiento (SPEC-030 + microfase UX).
+// Mismo lenguaje visual que DashboardEstablishmentCard, sin unificar
+// componentes para evitar un multivariante (ver informe previo).
+// Sin overlay: único enlace visible "Ver ficha", sin autor ni fecha.
 export function EstablishmentCard({ establishment }: { establishment: EstablishmentListItem }) {
   const detailUrl = `/establishments/${establishment.id}`;
   const summary = formatScoreSummary(establishment);
+  const filledStars = Math.round(establishment.averageScore);
 
   return (
-    <Card className="relative">
-      <Link
-        href={detailUrl}
-        aria-label={`Ver ficha de ${establishment.name}`}
-        className="absolute inset-0 rounded-xl"
-      >
-        <span className="sr-only">Ver ficha de {establishment.name}</span>
-      </Link>
-      <CardHeader>
-        <CardTitle>{establishment.name}</CardTitle>
-        <CardDescription>
+    <Card className="flex h-full flex-col overflow-hidden">
+      {establishment.photoUrl && (
+        <div className="relative aspect-[21/9] w-full shrink-0 overflow-hidden">
+          <Image
+            src={establishment.photoUrl}
+            alt={`Fotografía de ${establishment.name}`}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
+          />
+        </div>
+      )}
+      <CardHeader className="pb-2">
+        <CardTitle className="line-clamp-1 text-base leading-snug">{establishment.name}</CardTitle>
+        <div>
           <Badge variant="secondary">{establishment.category.name}</Badge>
-        </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>
-        <p>
-          {summary.scoreText} · {summary.reviewsText}
-        </p>
-        <p>
+      <CardContent className="flex flex-1 flex-col gap-1 text-sm">
+        <p className="text-muted-foreground">
           {establishment.municipality}, {establishment.province}
         </p>
-        <p>
-          Por {establishment.createdBy.name ?? "—"} ·{" "}
-          {dateFormatter.format(establishment.createdAt)}
+        <p className="flex items-center gap-1.5">
+          <span role="img" aria-label={`${establishment.averageScore} de 5 estrellas`}>
+            {Array.from({ length: 5 }, (_, index) => (
+              <Star
+                key={index}
+                aria-hidden="true"
+                className={index < filledStars ? "size-4 fill-current" : "size-4"}
+              />
+            ))}
+          </span>
+          <span>
+            {formatDecimalScore(establishment.averageScore)} / 5 · {summary.reviewsText}
+          </span>
         </p>
       </CardContent>
       <CardFooter>
-        <span className={buttonVariants()} aria-hidden="true">
+        <Link href={detailUrl} className={buttonVariants()}>
           Ver ficha
-        </span>
+        </Link>
       </CardFooter>
     </Card>
   );

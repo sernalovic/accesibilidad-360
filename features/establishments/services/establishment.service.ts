@@ -52,6 +52,8 @@ export interface EstablishmentListItem {
   createdAt: Date;
   category: { name: string };
   createdBy: { name: string | null };
+  // Fotografía principal (misma consulta, sin N+1): url o null.
+  photoUrl: string | null;
   // Media dinámica (SPEC-040): siempre number (0 sin valoraciones).
   averageScore: number;
   reviewCount: number;
@@ -289,14 +291,20 @@ export async function searchEstablishments(
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
+      photos: {
+        select: { url: true },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+        take: 1,
+      },
       reviews: { select: { scores: { select: { score: true } } } },
     },
   });
   // Se aplana a strings para no cambiar la forma consumida (SPEC-035).
-  const items = rows.map(({ reviews, municipality, province, ...rest }) => ({
+  const items = rows.map(({ reviews, municipality, province, photos, ...rest }) => ({
     ...rest,
     municipality: municipality.name,
     province: province.name,
+    photoUrl: photos[0]?.url ?? null,
     ...summarizeScores(reviews),
   }));
 
@@ -387,17 +395,23 @@ export async function getEstablishmentById(id: string): Promise<EstablishmentDet
       createdAt: true,
       category: { select: { name: true } },
       createdBy: { select: { name: true } },
+      photos: {
+        select: { url: true },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+        take: 1,
+      },
       reviews: { select: { scores: { select: { score: true } } } },
     },
   });
   if (!row) {
     return null;
   }
-  const { reviews, municipality, province, ...rest } = row;
+  const { reviews, municipality, province, photos, ...rest } = row;
   return {
     ...rest,
     municipality: municipality.name,
     province: province.name,
+    photoUrl: photos[0]?.url ?? null,
     ...summarizeScores(reviews),
   };
 }

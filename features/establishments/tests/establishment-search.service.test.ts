@@ -23,6 +23,7 @@ function row(name: string, createdAt: string, scores: number[] = []) {
     createdAt: new Date(createdAt),
     category: { name: "Restaurante" },
     createdBy: { name: "María" },
+    photos: [],
     reviews: scores.length > 0 ? [{ scores: scores.map((score) => ({ score })) }] : [],
   };
 }

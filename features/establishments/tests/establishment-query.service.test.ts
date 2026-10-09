@@ -27,6 +27,7 @@ const sampleItem = {
   createdAt: new Date("2026-01-01"),
   category: { name: "Restaurante" },
   createdBy: { name: "María" },
+  photos: [],
   reviews: [],
 };
 
@@ -38,6 +39,7 @@ const sampleFlat = {
   createdAt: new Date("2026-01-01"),
   category: { name: "Restaurante" },
   createdBy: { name: "María" },
+  photoUrl: null,
 };
 
 const sampleSummary = { averageScore: 0, reviewCount: 0, hasReviews: false };
