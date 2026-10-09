@@ -1,15 +1,15 @@
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface DashboardStatCardProps {
+interface StatCardProps {
   label: string;
   value: number;
   icon: LucideIcon;
 }
 
-// Tarjeta de estadística (SPEC-100 + microfase UX).
-// Presentacional: icono + número con protagonismo.
-export function DashboardStatCard({ label, value, icon: Icon }: DashboardStatCardProps) {
+// Tarjeta de estadística compartida (Dashboard, Perfil).
+// Puramente visual: icono + número con protagonismo. Sin lógica de dominio.
+export function StatCard({ label, value, icon: Icon }: StatCardProps) {
   return (
     <Card>
       <CardHeader>

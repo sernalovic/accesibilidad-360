@@ -8,14 +8,18 @@ Proyecto desarrollado como Trabajo Fin de Máster en Programación con Inteligen
 
 Implementado y verificado (build + lint + tests en verde):
 
-- **Autenticación (Auth.js v5):** registro con hash bcrypt, inicio de sesión con Credentials, cierre de sesión, shell protegido (`Topbar` + navegación), páginas `/login`, `/register`, `/dashboard`, `/profile` (provisional).
-- **Establecimientos:** alta con categorías y geografía normalizada (52 provincias + 8.192 municipios INE, sin texto libre; seed idempotente), listado con tarjetas, ficha de detalle rediseñada, media de accesibilidad dinámica. Rutas `/establishments`, `/establishments/new`, `/establishments/[id]`.
-- **Valoraciones:** formulario accesible por criterios (escala 0–5 con significados), una valoración por usuario y establecimiento, lista en la ficha.
-- **Fotografías:** subida a Cloudinary (solo URL + publicId en BD), una por establecimiento, visible en la ficha.
-- **Mapa:** ubicación geocodificada con Nominatim al crear (Leaflet + OpenStreetMap en la ficha; sin coords muestra aviso).
+- **Autenticación (Auth.js v5):** registro con hash bcrypt, inicio de sesión con Credentials, cierre de sesión, shell protegido (`Topbar` + navegación), páginas `/login`, `/register`, `/dashboard`, `/profile`.
+- **Perfil (SPEC-125):** información de la cuenta (nombre, correo, rol, alta, proveedor), edición del nombre con sincronización inmediata de la sesión, cambio de contraseña solo para cuentas locales, actividad (creados, valoraciones, fotos) y cierre de sesión. Ruta `/profile`.
+- **Establecimientos:** alta con categorías y geografía normalizada (52 provincias + 8.192 municipios INE, sin texto libre; seed idempotente), listado en grid responsive con tarjetas compactas (foto principal, estrellas, «Ver ficha»), ficha de detalle con galería, edición y eliminación según permisos (creador o admin), media de accesibilidad dinámica. Rutas `/establishments`, `/establishments/new`, `/establishments/[id]`, `/establishments/[id]/edit`.
+- **Valoraciones:** formulario accesible por criterios (escala 0–5 con significados), una valoración por usuario y establecimiento, lista en la ficha con eliminación según permisos.
+- **Fotografías:** galería en Cloudinary (solo URL + publicId en BD), subida y eliminación según permisos, foto principal visible en tarjetas y ficha.
+- **Mapa:** mapa global `/map` con establecimientos geolocalizados (Leaflet + OpenStreetMap); ubicación geocodificada con Nominatim al crear (en la ficha, sin coords muestra aviso).
+- **Búsqueda y filtros:** texto, categoría, provincia, municipio y orden (recientes, nombre, mejor valorados) vía URL en `/establishments`.
+- **Dashboard:** estadísticas, últimos establecimientos, mejor valorados y accesos rápidos. Ruta `/dashboard`.
+- **Administración:** panel mínimo con gestión de categorías. Ruta `/admin` (solo ADMIN).
 - **UI:** landing pública, componentes oficiales shadcn/ui, sin modo oscuro ni animaciones.
 
-Pendiente (según `.specs/`): edición/eliminación, galerías, mapa global, búsqueda/filtros, dashboard funcional, administración.
+Pendiente: especificaciones `020/060/070/080/090/100` aún sin redactar en `.specs/`; evoluciones futuras según producto (favoritos, gamificación, API pública, multidioma, app móvil).
 
 ## Tecnologías
 
@@ -25,7 +29,7 @@ Pendiente (según `.specs/`): edición/eliminación, galerías, mapa global, bú
 - Auth.js v5 (Credentials, sesiones JWT) + bcrypt
 - Zod + React Hook Form
 - Cloudinary (fotografías) + Leaflet + React Leaflet (mapa, Nominatim para geocodificar)
-- Vitest + Testing Library + Playwright + axe-core (93 tests automatizados)
+- Vitest + Testing Library + Playwright + axe-core (189 tests automatizados)
 - ESLint + Prettier + Husky + lint-staged
 
 ## Requisitos
@@ -61,9 +65,11 @@ npm run lint      # análisis estático
 
 ```text
 app/                  # rutas: (public)/, (auth)/, (protected)/, api/auth/
-components/           # ui/ (shadcn) y layout/ (Topbar, MainNav, Container)
-features/             # auth/, establishments/, reviews/, photos/ (schemas,
-                      #   services, actions, components, tests por módulo)
+components/           # ui/ (shadcn), layout/ (Topbar, MainNav, Container),
+                      #   stats/ (StatCard compartida)
+features/             # auth/, dashboard/, establishments/, photos/, reviews/,
+                      #   profile/ (schemas, services, actions, components,
+                      #   tests por módulo)
 lib/                  # auth/ (Auth.js), db/ (Prisma), utils
 prisma/               # schema.prisma, migrations/, seed.ts, data/ (INE)
 tests/                # setup, lib/, e2e/

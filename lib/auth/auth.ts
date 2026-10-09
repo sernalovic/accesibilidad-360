@@ -14,7 +14,7 @@ import { verifyCredentials } from "@/features/auth/services/login.service";
 // Auth.js v5 exige `authorize` en este init, pero la verificación de
 // credenciales es lógica de dominio y vive en features/auth/services.
 // Este archivo solo cablea; no contiene reglas de negocio.
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const { handlers, auth, signIn, signOut, unstable_update } = NextAuth({
   ...authConfig,
   providers: [
     Credentials({
@@ -33,11 +33,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
-    async jwt({ token, user }) {
+    async jwt({ token, user, session, trigger }) {
       // `role` viaja en el token con tipado local: la aumentación de
       // "next-auth/jwt" no se propaga al tipo usado en los callbacks.
       if (user?.role) {
         (token as typeof token & { role?: Role }).role = user.role;
+      }
+      // Sincroniza el nombre editado en el perfil (SPEC-125) sin leer la
+      // base de datos en cada petición: `unstable_update` reenvía el dato
+      // con trigger "update" y aquí se propaga al token JWT.
+      if (trigger === "update") {
+        const updatedName = (session as { user?: { name?: unknown } } | null)?.user?.name;
+        if (typeof updatedName === "string") {
+          token.name = updatedName;
+        }
       }
       return token;
     },

@@ -4,9 +4,9 @@ import { Building2, Camera, Star, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { auth } from "@/lib/auth/auth";
 import { Container } from "@/components/layout/Container";
+import { StatCard } from "@/components/stats/StatCard";
 import { DashboardEstablishmentCard } from "@/features/dashboard/components/DashboardEstablishmentCard";
 import { DashboardSection } from "@/features/dashboard/components/DashboardSection";
-import { DashboardStatCard } from "@/features/dashboard/components/DashboardStatCard";
 import { formatDecimalScore } from "@/features/establishments/utils/score-format";
 import { getDashboardData } from "@/features/dashboard/services/dashboard.service";
 
@@ -43,14 +43,10 @@ export default async function DashboardPage() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <DashboardStatCard
-              label="Establecimientos"
-              value={data.stats.establishments}
-              icon={Building2}
-            />
-            <DashboardStatCard label="Usuarios" value={data.stats.users} icon={Users} />
-            <DashboardStatCard label="Valoraciones" value={data.stats.reviews} icon={Star} />
-            <DashboardStatCard label="Fotografías" value={data.stats.photos} icon={Camera} />
+            <StatCard label="Establecimientos" value={data.stats.establishments} icon={Building2} />
+            <StatCard label="Usuarios" value={data.stats.users} icon={Users} />
+            <StatCard label="Valoraciones" value={data.stats.reviews} icon={Star} />
+            <StatCard label="Fotografías" value={data.stats.photos} icon={Camera} />
           </div>
 
           <DashboardSection title="Últimos establecimientos">
