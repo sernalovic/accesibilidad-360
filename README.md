@@ -2,7 +2,9 @@
 
 Plataforma web colaborativa para consultar y compartir información sobre la accesibilidad de establecimientos públicos y privados.
 
-Proyecto desarrollado como Trabajo Fin de Máster en Programación con Inteligencia Artificial. La IA se utiliza exclusivamente como herramienta de apoyo al desarrollo, no forma parte del producto.
+Proyecto desarrollado como Trabajo Fin de Máster del Máster en Desarrollo con Inteligencia Artificial (Big School). La IA se utiliza exclusivamente como herramienta de apoyo al desarrollo, no forma parte del producto.
+
+**Aplicación en producción:** https://accesibilidad-360.vercel.app
 
 ## Estado actual
 
@@ -37,7 +39,7 @@ Posibles evoluciones futuras (fuera del alcance del TFM):
 - Auth.js v5 (Credentials, sesiones JWT) + bcrypt
 - Zod + React Hook Form
 - Cloudinary (fotografías) + Leaflet + React Leaflet (mapa, Nominatim para geocodificar)
-- Vitest + Testing Library + Playwright + axe-core (189 tests unitarios/integración + 3 e2e)
+- Vitest + Testing Library + Playwright + axe-core (192 pruebas de Vitest, unitarias y de componentes, más 7 pruebas e2e de Playwright en 3 archivos)
 - ESLint + Prettier + Husky + lint-staged
 
 ## Requisitos
@@ -57,6 +59,20 @@ npx prisma db seed
 ```
 
 Variables en `.env` (ver `.env.example`): `DATABASE_URL`, `AUTH_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+
+## Usuarios de prueba
+
+La aplicación no trae usuarios precargados: las cuentas se crean desde la propia aplicación, que es una de las funcionalidades de la SPEC-010 (HU-010-001, registro de usuarios).
+
+1. Abrir `/register` (en producción: https://accesibilidad-360.vercel.app/register).
+2. Indicar nombre (2 a 100 caracteres), correo electrónico y contraseña con confirmación. La contraseña debe tener al menos 12 caracteres, con una mayúscula, una minúscula y un número.
+3. Iniciar sesión en `/login` con ese correo y esa contraseña.
+
+Las cuentas nuevas tienen el rol `USER`. El rol de administrador, necesario para acceder a `/admin` y gestionar categorías, se asigna por ahora directamente en la base de datos, por ejemplo:
+
+```sql
+UPDATE "User" SET role = 'ADMIN' WHERE email = 'correo-de-la-cuenta@ejemplo.com';
+```
 
 ## Ejecución
 
@@ -84,6 +100,10 @@ tests/                # setup, lib/, e2e/
 .specs/               # especificaciones (fuente de verdad)
 .ai/                  # arquitectura, guías y decisiones (ADR)
 ```
+
+## Despliegue
+
+La aplicación está desplegada en **Vercel**, con la base de datos PostgreSQL gestionada en **Neon** y las fotografías en **Cloudinary**. Variables de entorno de producción: las cinco de `.env.example` (`DATABASE_URL`, `AUTH_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`). Las migraciones no se aplican en la compilación: cuando cambia el esquema hay que ejecutar `npx prisma migrate deploy` contra la base de datos de producción.
 
 ## Documentación
 
